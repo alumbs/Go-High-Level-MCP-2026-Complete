@@ -424,7 +424,7 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
     return [
       {
         name: 'view_contact_grid',
-        description: 'Display contact search results in a data grid with sorting and pagination. Returns a visual UI component.',
+        description: 'Display contact search results in a data grid. Accepts query (search string) or no args (shows recent contacts). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -436,76 +436,77 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
       },
       {
         name: 'view_pipeline_board',
-        description: 'Display a pipeline as an interactive Kanban board with opportunities. Returns a visual UI component.',
+        description: 'Display a pipeline as an interactive Kanban board. Accepts pipelineId (direct), pipelineName (fuzzy match), or nothing (shows first pipeline). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             pipelineId: { type: 'string', description: 'Pipeline ID to display' },
+            pipelineName: { type: 'string', description: 'Pipeline name (fuzzy match)' },
           },
-          required: ['pipelineId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_quick_book',
-        description: 'Display a quick booking interface for scheduling appointments. Returns a visual UI component.',
+        description: 'Display a quick booking interface for scheduling appointments. Accepts calendarId (direct), calendarName (fuzzy match), or nothing (shows first calendar). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             calendarId: { type: 'string', description: 'Calendar ID for booking' },
+            calendarName: { type: 'string', description: 'Calendar name (fuzzy match)' },
             contactId: { type: 'string', description: 'Optional contact ID to pre-fill' },
           },
-          required: ['calendarId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_opportunity_card',
-        description: 'Display a single opportunity with details, value, and stage info. Returns a visual UI component.',
+        description: 'Display a single opportunity with details, value, and stage info. Accepts opportunityId (direct), opportunityName (fuzzy search), contactName (search by contact), or nothing (shows first opportunity). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             opportunityId: { type: 'string', description: 'Opportunity ID to display' },
+            opportunityName: { type: 'string', description: 'Opportunity name (fuzzy search)' },
+            contactName: { type: 'string', description: 'Contact name to find opportunities for' },
           },
-          required: ['opportunityId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_calendar',
-        description: 'Display a calendar with events and appointments. Returns a visual UI component.',
+        description: 'Display a calendar with events and appointments. Accepts calendarId (direct), calendarName (fuzzy match), or nothing (shows first/default calendar). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             calendarId: { type: 'string', description: 'Calendar ID to display' },
+            calendarName: { type: 'string', description: 'Calendar name (fuzzy match)' },
             startDate: { type: 'string', description: 'Start date (ISO format)' },
             endDate: { type: 'string', description: 'End date (ISO format)' },
           },
-          required: ['calendarId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_invoice',
-        description: 'Display an invoice preview with line items and payment status. Returns a visual UI component.',
+        description: 'Display an invoice preview with line items and payment status. Accepts invoiceId (direct), invoiceNumber (search by number), or nothing (shows most recent invoice). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             invoiceId: { type: 'string', description: 'Invoice ID to display' },
+            invoiceNumber: { type: 'string', description: 'Invoice number to search for' },
           },
-          required: ['invoiceId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_campaign_stats',
-        description: 'Display campaign statistics and performance metrics. Returns a visual UI component.',
+        description: 'Display campaign statistics and performance metrics. Accepts campaignId (direct), campaignName (fuzzy match), or nothing (shows overview of all campaigns). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             campaignId: { type: 'string', description: 'Campaign ID to display stats for' },
+            campaignName: { type: 'string', description: 'Campaign name (fuzzy match)' },
           },
-          required: ['campaignId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
@@ -523,25 +524,25 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
       },
       {
         name: 'view_contact_timeline',
-        description: "Display a contact's activity timeline with all interactions. Returns a visual UI component.",
+        description: "Display a contact's activity timeline with all interactions. Accepts contactId (direct), contactName (fuzzy search), or nothing (shows first recent contact). Returns a visual UI component.",
         inputSchema: {
           type: 'object',
           properties: {
             contactId: { type: 'string', description: 'Contact ID to display timeline for' },
+            contactName: { type: 'string', description: 'Contact name (fuzzy search)' },
           },
-          required: ['contactId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
       {
         name: 'view_workflow_status',
-        description: 'Display workflow execution status and history. Returns a visual UI component.',
+        description: 'Display workflow execution status and history. Accepts workflowId (direct), workflowName (fuzzy match), or nothing (shows overview of all workflows). Returns a visual UI component.',
         inputSchema: {
           type: 'object',
           properties: {
             workflowId: { type: 'string', description: 'Workflow ID to display status for' },
+            workflowName: { type: 'string', description: 'Workflow name (fuzzy match)' },
           },
-          required: ['workflowId'],
         },
         _meta: { ui: { resourceUri: appUri } },
       },
@@ -556,7 +557,7 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
       },
       {
         name: 'generate_ghl_view',
-        description: 'Generate a rich, AI-powered UI view on the fly from a natural language prompt. Optionally fetches real GHL data to populate the view. Returns a visual UI component rendered in the MCP App.',
+        description: 'Generate a rich, AI-powered UI view on the fly from a natural language prompt. Optionally fetches real GHL data to populate the view. Requires ANTHROPIC_API_KEY. Returns a visual UI component rendered in the MCP App.',
         inputSchema: {
           type: 'object',
           properties: {
@@ -613,25 +614,25 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
 
     switch (toolName) {
       case 'view_contact_grid':
-        return this.viewContactGrid(args.query, args.limit);
+        return this.viewContactGrid(args);
       case 'view_pipeline_board':
-        return this.viewPipelineBoard(args.pipelineId);
+        return this.viewPipelineBoard(args);
       case 'view_quick_book':
-        return this.viewQuickBook(args.calendarId, args.contactId);
+        return this.viewQuickBook(args);
       case 'view_opportunity_card':
-        return this.viewOpportunityCard(args.opportunityId);
+        return this.viewOpportunityCard(args);
       case 'view_calendar':
-        return this.viewCalendar(args.calendarId, args.startDate, args.endDate);
+        return this.viewCalendar(args);
       case 'view_invoice':
-        return this.viewInvoice(args.invoiceId);
+        return this.viewInvoice(args);
       case 'view_campaign_stats':
-        return this.viewCampaignStats(args.campaignId);
+        return this.viewCampaignStats(args);
       case 'view_agent_stats':
-        return this.viewAgentStats(args.userId, args.dateRange);
+        return this.viewAgentStats(args);
       case 'view_contact_timeline':
-        return this.viewContactTimeline(args.contactId);
+        return this.viewContactTimeline(args);
       case 'view_workflow_status':
-        return this.viewWorkflowStatus(args.workflowId);
+        return this.viewWorkflowStatus(args);
       case 'view_dashboard':
         return this.viewDashboard();
       case 'generate_ghl_view':
@@ -649,179 +650,434 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
     }
   }
 
+  // ─── Helper: graceful error result ──────────────────────
+
+  private errorResult(message: string, extra?: Record<string, unknown>): AppToolResult {
+    return {
+      content: [{ type: 'text', text: message }],
+      structuredContent: { error: true, message, ...extra },
+    };
+  }
+
+  // ─── Helper: resolve calendar ID from args ────────────
+
+  private async resolveCalendarId(args: Record<string, any>): Promise<{ calendarId?: string; calendars?: any[] }> {
+    let calendarId = args.calendarId;
+    let calendars: any[] | undefined;
+
+    if (!calendarId) {
+      const calendarsResponse = await this.ghlClient.getCalendars();
+      calendars = calendarsResponse.data?.calendars || [];
+      if (args.calendarName && calendars.length > 0) {
+        const match = calendars.find((c: any) =>
+          c.name?.toLowerCase().includes(args.calendarName.toLowerCase())
+        );
+        calendarId = match?.id ?? calendars[0]?.id;
+      } else if (calendars.length > 0) {
+        calendarId = calendars[0]?.id;
+      }
+    }
+
+    return { calendarId, calendars };
+  }
+
   // ─── View Handlers (fetch data → template → universal renderer) ──
 
-  private async viewContactGrid(query?: string, limit?: number): Promise<AppToolResult> {
-    const response = await this.ghlClient.searchContacts({
-      locationId: this.ghlClient.getConfig().locationId,
-      query, limit: limit || 25,
-    });
-    if (!response.success) throw new Error(response.error?.message || 'Failed to search contacts');
+  private async viewContactGrid(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const response = await this.ghlClient.searchContacts({
+        locationId: this.ghlClient.getConfig().locationId,
+        query: args.query, limit: args.limit || 25,
+      });
+      if (!response.success) throw new Error(response.error?.message || 'Failed to search contacts');
 
-    const uiTree = buildContactGridTree({
-      contacts: response.data?.contacts || [],
-      query,
-    });
+      const contacts = response.data?.contacts || [];
+      if (contacts.length === 0) {
+        return this.errorResult(
+          args.query ? `No contacts found matching "${args.query}".` : 'No contacts found in this location.',
+          { query: args.query, contacts: [] }
+        );
+      }
 
-    return this.renderUITree(uiTree, `Found ${response.data?.contacts?.length || 0} contacts`);
+      const uiTree = buildContactGridTree({
+        contacts,
+        query: args.query,
+      });
+
+      return this.renderUITree(uiTree, `Found ${contacts.length} contacts`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load contact grid: ${error.message}`);
+    }
   }
 
-  private async viewPipelineBoard(pipelineId: string): Promise<AppToolResult> {
-    const [pipelinesResponse, opportunitiesResponse] = await Promise.all([
-      this.ghlClient.getPipelines(),
-      this.ghlClient.searchOpportunities({
+  private async viewPipelineBoard(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      let pipelineId = args.pipelineId;
+
+      // Self-resolve: get pipelines list for fuzzy match or default
+      const pipelinesResponse = await this.ghlClient.getPipelines();
+      if (!pipelinesResponse.success) throw new Error(pipelinesResponse.error?.message || 'Failed to get pipelines');
+
+      const pipelines = pipelinesResponse.data?.pipelines || [];
+
+      if (!pipelineId && pipelines.length > 0) {
+        if (args.pipelineName) {
+          const match = pipelines.find((p: any) =>
+            p.name?.toLowerCase().includes(args.pipelineName.toLowerCase())
+          );
+          pipelineId = match?.id ?? pipelines[0]?.id;
+        } else {
+          pipelineId = pipelines[0]?.id;
+        }
+      }
+
+      if (!pipelineId) {
+        return this.errorResult('No pipelines found in this location.', { pipelines: [] });
+      }
+
+      const opportunitiesResponse = await this.ghlClient.searchOpportunities({
         location_id: this.ghlClient.getConfig().locationId,
         pipeline_id: pipelineId,
-      }),
-    ]);
-    if (!pipelinesResponse.success) throw new Error(pipelinesResponse.error?.message || 'Failed to get pipeline');
+      });
 
-    const pipeline = pipelinesResponse.data?.pipelines?.find((p: any) => p.id === pipelineId);
-    const opportunities = (opportunitiesResponse.data?.opportunities || []).map((opp: any) => ({
-      id: opp.id, name: opp.name || 'Untitled',
-      pipelineStageId: opp.pipelineStageId, status: opp.status || 'open',
-      monetaryValue: opp.monetaryValue || 0,
-      contact: opp.contact ? { name: opp.contact.name || 'Unknown', email: opp.contact.email, phone: opp.contact.phone } : { name: 'Unknown' },
-      updatedAt: opp.updatedAt || opp.createdAt, createdAt: opp.createdAt, source: opp.source,
-    }));
+      const pipeline = pipelines.find((p: any) => p.id === pipelineId);
+      const opportunities = (opportunitiesResponse.data?.opportunities || []).map((opp: any) => ({
+        id: opp.id, name: opp.name || 'Untitled',
+        pipelineStageId: opp.pipelineStageId, status: opp.status || 'open',
+        monetaryValue: opp.monetaryValue || 0,
+        contact: opp.contact ? { name: opp.contact.name || 'Unknown', email: opp.contact.email, phone: opp.contact.phone } : { name: 'Unknown' },
+        updatedAt: opp.updatedAt || opp.createdAt, createdAt: opp.createdAt, source: opp.source,
+      }));
 
-    const uiTree = buildPipelineBoardTree({
-      pipeline, opportunities, stages: pipeline?.stages || [],
-    });
+      const uiTree = buildPipelineBoardTree({
+        pipeline, opportunities, stages: pipeline?.stages || [],
+      });
 
-    return this.renderUITree(uiTree, `Pipeline: ${pipeline?.name || 'Unknown'} (${opportunities.length} opportunities)`);
+      return this.renderUITree(uiTree, `Pipeline: ${pipeline?.name || 'Unknown'} (${opportunities.length} opportunities)`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load pipeline board: ${error.message}`);
+    }
   }
 
-  private async viewQuickBook(calendarId: string, contactId?: string): Promise<AppToolResult> {
-    const [calendarResponse, contactResponse] = await Promise.all([
-      this.ghlClient.getCalendar(calendarId),
-      contactId ? this.ghlClient.getContact(contactId) : Promise.resolve({ success: true, data: null }),
-    ]);
-    if (!calendarResponse.success) throw new Error(calendarResponse.error?.message || 'Failed to get calendar');
+  private async viewQuickBook(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const { calendarId, calendars } = await this.resolveCalendarId(args);
 
-    const uiTree = buildQuickBookTree({
-      calendar: calendarResponse.data,
-      contact: contactResponse.data,
-      locationId: this.ghlClient.getConfig().locationId,
-    });
+      if (!calendarId) {
+        return this.errorResult('No calendars found in this location.', { calendars: [] });
+      }
 
-    return this.renderUITree(uiTree, `Quick booking for calendar: ${(calendarResponse.data as any)?.name || calendarId}`);
-  }
+      const [calendarResponse, contactResponse] = await Promise.all([
+        this.ghlClient.getCalendar(calendarId),
+        args.contactId ? this.ghlClient.getContact(args.contactId) : Promise.resolve({ success: true, data: null }),
+      ]);
+      if (!calendarResponse.success) throw new Error(calendarResponse.error?.message || 'Failed to get calendar');
 
-  private async viewOpportunityCard(opportunityId: string): Promise<AppToolResult> {
-    const response = await this.ghlClient.getOpportunity(opportunityId);
-    if (!response.success) throw new Error(response.error?.message || 'Failed to get opportunity');
-
-    const uiTree = buildOpportunityCardTree(response.data);
-    return this.renderUITree(uiTree, `Opportunity: ${(response.data as any)?.name || opportunityId}`);
-  }
-
-  private async viewCalendar(calendarId: string, startDate?: string, endDate?: string): Promise<AppToolResult> {
-    const now = new Date();
-    const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const end = endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
-
-    const [calendarResponse, eventsResponse] = await Promise.all([
-      this.ghlClient.getCalendar(calendarId),
-      this.ghlClient.getCalendarEvents({
-        calendarId, startTime: start, endTime: end,
+      const uiTree = buildQuickBookTree({
+        calendar: calendarResponse.data,
+        contact: contactResponse.data,
         locationId: this.ghlClient.getConfig().locationId,
-      }),
-    ]);
-    if (!calendarResponse.success) throw new Error(calendarResponse.error?.message || 'Failed to get calendar');
+      });
 
-    const calendar = calendarResponse.data as any;
-    const events = eventsResponse.data?.events || [];
-
-    const uiTree = buildCalendarViewTree({ calendar, events, startDate: start, endDate: end });
-    return this.renderUITree(uiTree, `Calendar: ${calendar?.name || 'Unknown'} (${events.length} events)`);
+      return this.renderUITree(uiTree, `Quick booking for calendar: ${(calendarResponse.data as any)?.name || calendarId}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load quick book: ${error.message}`);
+    }
   }
 
-  private async viewInvoice(invoiceId: string): Promise<AppToolResult> {
-    const response = await this.ghlClient.getInvoice(invoiceId, {
-      altId: this.ghlClient.getConfig().locationId,
-      altType: 'location',
-    });
-    if (!response.success) throw new Error(response.error?.message || 'Failed to get invoice');
+  private async viewOpportunityCard(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      let opportunityId = args.opportunityId;
 
-    const invoice = response.data;
-    const uiTree = buildInvoicePreviewTree(invoice);
-    return this.renderUITree(uiTree, `Invoice #${invoice?.invoiceNumber || invoiceId} - ${invoice?.status || 'Unknown status'}`);
+      // Self-resolve: search by name, contact, or default to first
+      if (!opportunityId) {
+        const searchParams: any = {
+          location_id: this.ghlClient.getConfig().locationId,
+        };
+        if (args.opportunityName) {
+          searchParams.q = args.opportunityName;
+        }
+
+        const searchResponse = await this.ghlClient.searchOpportunities(searchParams);
+        const opportunities = searchResponse.data?.opportunities || [];
+
+        if (args.contactName && opportunities.length > 0) {
+          // Filter by contact name
+          const match = opportunities.find((o: any) =>
+            o.contact?.name?.toLowerCase().includes(args.contactName.toLowerCase()) ||
+            o.contact?.firstName?.toLowerCase().includes(args.contactName.toLowerCase()) ||
+            o.contact?.lastName?.toLowerCase().includes(args.contactName.toLowerCase())
+          );
+          opportunityId = match?.id ?? opportunities[0]?.id;
+        } else if (opportunities.length > 0) {
+          opportunityId = opportunities[0]?.id;
+        }
+      }
+
+      if (!opportunityId) {
+        return this.errorResult('No opportunities found.', { opportunities: [] });
+      }
+
+      const response = await this.ghlClient.getOpportunity(opportunityId);
+      if (!response.success) throw new Error(response.error?.message || 'Failed to get opportunity');
+
+      const uiTree = buildOpportunityCardTree(response.data);
+      return this.renderUITree(uiTree, `Opportunity: ${(response.data as any)?.name || opportunityId}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load opportunity card: ${error.message}`);
+    }
   }
 
-  private async viewCampaignStats(campaignId: string): Promise<AppToolResult> {
-    const response = await this.ghlClient.getEmailCampaigns({});
-    const campaigns = response.data?.schedules || [];
-    const campaign = campaigns.find((c: any) => c.id === campaignId) || { id: campaignId };
+  private async viewCalendar(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const { calendarId } = await this.resolveCalendarId(args);
 
-    const uiTree = buildCampaignStatsTree({
-      campaign, campaigns, campaignId,
-      locationId: this.ghlClient.getConfig().locationId,
-    });
+      if (!calendarId) {
+        return this.errorResult('No calendars found in this location.', { calendars: [] });
+      }
 
-    return this.renderUITree(uiTree, `Campaign stats: ${(campaign as any)?.name || campaignId}`);
+      const now = new Date();
+      const start = args.startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+      const end = args.endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
+
+      const [calendarResponse, eventsResponse] = await Promise.all([
+        this.ghlClient.getCalendar(calendarId),
+        this.ghlClient.getCalendarEvents({
+          calendarId, startTime: start, endTime: end,
+          locationId: this.ghlClient.getConfig().locationId,
+        }),
+      ]);
+      if (!calendarResponse.success) throw new Error(calendarResponse.error?.message || 'Failed to get calendar');
+
+      const calendar = calendarResponse.data as any;
+      const events = eventsResponse.data?.events || [];
+
+      const uiTree = buildCalendarViewTree({ calendar, events, startDate: start, endDate: end });
+      return this.renderUITree(uiTree, `Calendar: ${calendar?.name || 'Unknown'} (${events.length} events)`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load calendar: ${error.message}`);
+    }
   }
 
-  private async viewAgentStats(userId?: string, dateRange?: string): Promise<AppToolResult> {
-    const locationResponse = await this.ghlClient.getLocationById(this.ghlClient.getConfig().locationId);
+  private async viewInvoice(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      let invoiceId = args.invoiceId;
 
-    const uiTree = buildAgentStatsTree({
-      userId, dateRange: dateRange || 'last30days',
-      location: locationResponse.data,
-      locationId: this.ghlClient.getConfig().locationId,
-    });
+      // Self-resolve: search by invoice number or default to first
+      if (!invoiceId) {
+        const listResponse = await this.ghlClient.listInvoices?.({
+          altId: this.ghlClient.getConfig().locationId,
+          altType: 'location',
+          limit: '20',
+          offset: '0',
+          ...(args.invoiceNumber ? { search: args.invoiceNumber } : {}),
+        });
+        const invoices = listResponse?.data?.invoices || [];
 
-    return this.renderUITree(uiTree, userId ? `Agent stats: ${userId}` : 'Agent overview');
+        if (args.invoiceNumber && invoices.length > 0) {
+          // Try exact match on invoice number first, then fallback to first result
+          const match = invoices.find((inv: any) =>
+            inv.invoiceNumber?.toString() === args.invoiceNumber?.toString() ||
+            (inv as any).number?.toString() === args.invoiceNumber?.toString()
+          );
+          invoiceId = match?._id ?? invoices[0]?._id;
+        } else if (invoices.length > 0) {
+          invoiceId = invoices[0]?._id;
+        }
+
+        if (!invoiceId) {
+          return this.errorResult(
+            args.invoiceNumber
+              ? `No invoice found matching number "${args.invoiceNumber}".`
+              : 'No invoices found in this location.',
+            { invoices: [] }
+          );
+        }
+      }
+
+      const response = await this.ghlClient.getInvoice(invoiceId, {
+        altId: this.ghlClient.getConfig().locationId,
+        altType: 'location',
+      });
+      if (!response.success) throw new Error(response.error?.message || 'Failed to get invoice');
+
+      const invoice = response.data;
+      const uiTree = buildInvoicePreviewTree(invoice);
+      return this.renderUITree(uiTree, `Invoice #${(invoice as any)?.invoiceNumber || invoiceId} - ${(invoice as any)?.status || 'Unknown status'}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load invoice: ${error.message}`);
+    }
   }
 
-  private async viewContactTimeline(contactId: string): Promise<AppToolResult> {
-    const [contactResponse, notesResponse, tasksResponse] = await Promise.all([
-      this.ghlClient.getContact(contactId),
-      this.ghlClient.getContactNotes(contactId),
-      this.ghlClient.getContactTasks(contactId),
-    ]);
-    if (!contactResponse.success) throw new Error(contactResponse.error?.message || 'Failed to get contact');
+  private async viewCampaignStats(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const response = await this.ghlClient.getEmailCampaigns({});
+      const campaigns = response.data?.schedules || [];
 
-    const contact = contactResponse.data as any;
-    const uiTree = buildContactTimelineTree({
-      contact: contactResponse.data,
-      notes: notesResponse.data || [],
-      tasks: tasksResponse.data || [],
-    });
+      let campaignId = args.campaignId;
 
-    return this.renderUITree(uiTree, `Timeline for ${contact?.firstName || ''} ${contact?.lastName || ''}`);
+      // Self-resolve: search by name or default to first
+      if (!campaignId && campaigns.length > 0) {
+        if (args.campaignName) {
+          const match = campaigns.find((c: any) =>
+            c.name?.toLowerCase().includes(args.campaignName.toLowerCase())
+          );
+          campaignId = match?.id ?? campaigns[0]?.id;
+        } else {
+          // Default: show first campaign (or overview of all)
+          campaignId = campaigns[0]?.id;
+        }
+      }
+
+      if (!campaignId && campaigns.length === 0) {
+        return this.errorResult('No campaigns found in this location.', { campaigns: [] });
+      }
+
+      const campaign = campaigns.find((c: any) => c.id === campaignId) || { id: campaignId };
+
+      const uiTree = buildCampaignStatsTree({
+        campaign, campaigns, campaignId: campaignId || '',
+        locationId: this.ghlClient.getConfig().locationId,
+      });
+
+      return this.renderUITree(uiTree, `Campaign stats: ${(campaign as any)?.name || campaignId}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load campaign stats: ${error.message}`);
+    }
   }
 
-  private async viewWorkflowStatus(workflowId: string): Promise<AppToolResult> {
-    const response = await this.ghlClient.getWorkflows({
-      locationId: this.ghlClient.getConfig().locationId,
-    });
-    const workflows = response.data?.workflows || [];
-    const workflow = workflows.find((w: any) => w.id === workflowId) || { id: workflowId };
+  private async viewAgentStats(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const locationResponse = await this.ghlClient.getLocationById(this.ghlClient.getConfig().locationId);
 
-    const uiTree = buildWorkflowStatusTree({
-      workflow, workflows, workflowId,
-      locationId: this.ghlClient.getConfig().locationId,
-    });
+      const uiTree = buildAgentStatsTree({
+        userId: args.userId, dateRange: args.dateRange || 'last30days',
+        location: locationResponse.data,
+        locationId: this.ghlClient.getConfig().locationId,
+      });
 
-    return this.renderUITree(uiTree, `Workflow: ${(workflow as any)?.name || workflowId}`);
+      return this.renderUITree(uiTree, args.userId ? `Agent stats: ${args.userId}` : 'Agent overview');
+    } catch (error: any) {
+      return this.errorResult(`Failed to load agent stats: ${error.message}`);
+    }
+  }
+
+  private async viewContactTimeline(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      let contactId = args.contactId;
+
+      // Self-resolve: search by name or default to first recent contact
+      if (!contactId) {
+        const searchQuery = args.contactName || '';
+        const searchResponse = await this.ghlClient.searchContacts({
+          locationId: this.ghlClient.getConfig().locationId,
+          query: searchQuery,
+          limit: 10,
+        });
+        const contacts = searchResponse.data?.contacts || [];
+
+        if (args.contactName && contacts.length > 0) {
+          // Fuzzy match on name
+          const match = contacts.find((c: any) => {
+            const fullName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().trim();
+            return fullName.includes(args.contactName.toLowerCase()) ||
+              (c.firstName || '').toLowerCase().includes(args.contactName.toLowerCase()) ||
+              (c.lastName || '').toLowerCase().includes(args.contactName.toLowerCase()) ||
+              (c.name || '').toLowerCase().includes(args.contactName.toLowerCase()) ||
+              (c.email || '').toLowerCase().includes(args.contactName.toLowerCase());
+          });
+          contactId = match?.id ?? contacts[0]?.id;
+        } else if (contacts.length > 0) {
+          contactId = contacts[0]?.id;
+        }
+      }
+
+      if (!contactId) {
+        return this.errorResult(
+          args.contactName
+            ? `No contact found matching "${args.contactName}".`
+            : 'No contacts found in this location.',
+          { contacts: [] }
+        );
+      }
+
+      const [contactResponse, notesResponse, tasksResponse] = await Promise.all([
+        this.ghlClient.getContact(contactId),
+        this.ghlClient.getContactNotes(contactId),
+        this.ghlClient.getContactTasks(contactId),
+      ]);
+      if (!contactResponse.success) throw new Error(contactResponse.error?.message || 'Failed to get contact');
+
+      const contact = contactResponse.data as any;
+      const uiTree = buildContactTimelineTree({
+        contact: contactResponse.data,
+        notes: notesResponse.data || [],
+        tasks: tasksResponse.data || [],
+      });
+
+      return this.renderUITree(uiTree, `Timeline for ${contact?.firstName || ''} ${contact?.lastName || ''}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load contact timeline: ${error.message}`);
+    }
+  }
+
+  private async viewWorkflowStatus(args: Record<string, any>): Promise<AppToolResult> {
+    try {
+      const response = await this.ghlClient.getWorkflows({
+        locationId: this.ghlClient.getConfig().locationId,
+      });
+      const workflows = response.data?.workflows || [];
+
+      let workflowId = args.workflowId;
+
+      // Self-resolve: search by name or default to first
+      if (!workflowId && workflows.length > 0) {
+        if (args.workflowName) {
+          const match = workflows.find((w: any) =>
+            w.name?.toLowerCase().includes(args.workflowName.toLowerCase())
+          );
+          workflowId = match?.id ?? workflows[0]?.id;
+        } else {
+          workflowId = workflows[0]?.id;
+        }
+      }
+
+      if (!workflowId && workflows.length === 0) {
+        return this.errorResult('No workflows found in this location.', { workflows: [] });
+      }
+
+      const workflow = workflows.find((w: any) => w.id === workflowId) || { id: workflowId };
+
+      const uiTree = buildWorkflowStatusTree({
+        workflow, workflows, workflowId: workflowId || '',
+        locationId: this.ghlClient.getConfig().locationId,
+      });
+
+      return this.renderUITree(uiTree, `Workflow: ${(workflow as any)?.name || workflowId}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to load workflow status: ${error.message}`);
+    }
   }
 
   private async viewDashboard(): Promise<AppToolResult> {
-    const [contactsResponse, pipelinesResponse, calendarsResponse] = await Promise.all([
-      this.ghlClient.searchContacts({ locationId: this.ghlClient.getConfig().locationId, limit: 10 }),
-      this.ghlClient.getPipelines(),
-      this.ghlClient.getCalendars(),
-    ]);
+    try {
+      const [contactsResponse, pipelinesResponse, calendarsResponse] = await Promise.all([
+        this.ghlClient.searchContacts({ locationId: this.ghlClient.getConfig().locationId, limit: 10 }),
+        this.ghlClient.getPipelines(),
+        this.ghlClient.getCalendars(),
+      ]);
 
-    const uiTree = buildDashboardTree({
-      recentContacts: contactsResponse.data?.contacts || [],
-      pipelines: pipelinesResponse.data?.pipelines || [],
-      calendars: calendarsResponse.data?.calendars || [],
-      locationId: this.ghlClient.getConfig().locationId,
-    });
+      const uiTree = buildDashboardTree({
+        recentContacts: contactsResponse.data?.contacts || [],
+        pipelines: pipelinesResponse.data?.pipelines || [],
+        calendars: calendarsResponse.data?.calendars || [],
+        locationId: this.ghlClient.getConfig().locationId,
+      });
 
-    return this.renderUITree(uiTree, 'GHL Dashboard Overview');
+      return this.renderUITree(uiTree, 'GHL Dashboard Overview');
+    } catch (error: any) {
+      return this.errorResult(`Failed to load dashboard: ${error.message}`);
+    }
   }
 
   // ─── Dynamic View (LLM-powered) ────────────────────────
@@ -839,6 +1095,7 @@ const d=window.__MCP_APP_DATA__;if(d){document.querySelector('.fallback').innerH
   }
 
   private async generateDynamicView(prompt: string, dataSource?: string): Promise<AppToolResult> {
+    try {
     process.stderr.write(`[MCP Apps] Generating dynamic view: "${prompt}" (dataSource: ${dataSource || 'auto'})\n`);
 
     // Step 1: Fetch real GHL data
@@ -925,6 +1182,9 @@ ${JSON.stringify(ghlData, null, 2)}
     process.stderr.write(`[MCP Apps] Generated UI tree with ${Object.keys(uiTree.elements).length} elements\n`);
 
     return this.renderUITree(uiTree, `Generated dynamic view: ${prompt}`);
+    } catch (error: any) {
+      return this.errorResult(`Failed to generate dynamic view: ${error.message}`);
+    }
   }
 
   // ─── Data Fetching ──────────────────────────────────────
