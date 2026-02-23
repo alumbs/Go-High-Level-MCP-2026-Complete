@@ -1,8 +1,8 @@
 {
   "name": "@mastanley13/ghl-mcp-server",
   "version": "1.0.0",
-  "description": "GoHighLevel MCP Server for Claude Desktop and ChatGPT integration",
-  "main": "dist/server.js",
+  "description": "GoHighLevel MCP Server v2.0 — 464 tools, Streamable HTTP, SDK 1.26, tool annotations, caching, retry",
+  "main": "dist/main.js",
   "bin": {
     "ghl-mcp-server": "dist/server.js"
   },
@@ -18,9 +18,10 @@
     "build:dynamic-ui": "cd src/ui/react-app && npm run build",
     "build": "npm run build:dynamic-ui && tsc",
     "dev": "nodemon --exec ts-node src/http-server.ts",
-    "start": "node dist/http-server.js",
+    "start": "node dist/main.js",
     "start:stdio": "node dist/server.js",
-    "start:http": "node dist/http-server.js",
+    "start:http": "node dist/main.js",
+    "start:legacy": "node dist/http-server.js",
     "vercel-build": "npm run build",
     "prepublishOnly": "npm run build",
     "test": "jest",
@@ -47,12 +48,13 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.72.1",
-    "@modelcontextprotocol/sdk": "^1.12.1",
+    "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.2",
     "axios": "^1.9.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "zod": "^4.3.6"
   }
 }

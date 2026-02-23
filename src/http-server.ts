@@ -33,6 +33,27 @@ import { WorkflowTools } from './tools/workflow-tools';
 import { SurveyTools } from './tools/survey-tools';
 import { StoreTools } from './tools/store-tools';
 import { ProductsTools } from './tools/products-tools.js';
+import { AffiliatesTools } from './tools/affiliates-tools';
+import { BusinessesTools } from './tools/businesses-tools';
+import { CampaignsTools } from './tools/campaigns-tools';
+import { CompaniesTools } from './tools/companies-tools';
+import { CoursesTools } from './tools/courses-tools';
+import { FormsTools } from './tools/forms-tools';
+import { FunnelsTools } from './tools/funnels-tools';
+import { InvoicesTools } from './tools/invoices-tools';
+import { LinksTools } from './tools/links-tools';
+import { PaymentsTools } from './tools/payments-tools';
+import { PhoneTools } from './tools/phone-tools';
+import { ReportingTools } from './tools/reporting-tools';
+import { ReputationTools } from './tools/reputation-tools';
+import { SaasTools } from './tools/saas-tools';
+import { SmartListsTools } from './tools/smartlists-tools';
+import { SnapshotsTools } from './tools/snapshots-tools';
+import { TemplatesTools } from './tools/templates-tools';
+import { TriggersTools } from './tools/triggers-tools';
+import { UsersTools } from './tools/users-tools';
+import { WebhooksTools } from './tools/webhooks-tools';
+import { MCPAppsManager } from './apps/index.js';
 import { GHLConfig } from './types/ghl-types';
 
 // Load environment variables
@@ -62,6 +83,27 @@ class GHLMCPHttpServer {
   private surveyTools: SurveyTools;
   private storeTools: StoreTools;
   private productsTools: ProductsTools;
+  private affiliatesTools: AffiliatesTools;
+  private businessesTools: BusinessesTools;
+  private campaignsTools: CampaignsTools;
+  private companiesTools: CompaniesTools;
+  private coursesTools: CoursesTools;
+  private formsTools: FormsTools;
+  private funnelsTools: FunnelsTools;
+  private invoicesTools: InvoicesTools;
+  private linksTools: LinksTools;
+  private paymentsTools: PaymentsTools;
+  private phoneTools: PhoneTools;
+  private reportingTools: ReportingTools;
+  private reputationTools: ReputationTools;
+  private saasTools: SaasTools;
+  private smartListsTools: SmartListsTools;
+  private snapshotsTools: SnapshotsTools;
+  private templatesTools: TemplatesTools;
+  private triggersTools: TriggersTools;
+  private usersTools: UsersTools;
+  private webhooksTools: WebhooksTools;
+  private mcpAppsManager: MCPAppsManager;
   private port: number;
 
   constructor() {
@@ -105,6 +147,27 @@ class GHLMCPHttpServer {
     this.surveyTools = new SurveyTools(this.ghlClient);
     this.storeTools = new StoreTools(this.ghlClient);
     this.productsTools = new ProductsTools(this.ghlClient);
+    this.affiliatesTools = new AffiliatesTools(this.ghlClient);
+    this.businessesTools = new BusinessesTools(this.ghlClient);
+    this.campaignsTools = new CampaignsTools(this.ghlClient);
+    this.companiesTools = new CompaniesTools(this.ghlClient);
+    this.coursesTools = new CoursesTools(this.ghlClient);
+    this.formsTools = new FormsTools(this.ghlClient);
+    this.funnelsTools = new FunnelsTools(this.ghlClient);
+    this.invoicesTools = new InvoicesTools(this.ghlClient);
+    this.linksTools = new LinksTools(this.ghlClient);
+    this.paymentsTools = new PaymentsTools(this.ghlClient);
+    this.phoneTools = new PhoneTools(this.ghlClient);
+    this.reportingTools = new ReportingTools(this.ghlClient);
+    this.reputationTools = new ReputationTools(this.ghlClient);
+    this.saasTools = new SaasTools(this.ghlClient);
+    this.smartListsTools = new SmartListsTools(this.ghlClient);
+    this.snapshotsTools = new SnapshotsTools(this.ghlClient);
+    this.templatesTools = new TemplatesTools(this.ghlClient);
+    this.triggersTools = new TriggersTools(this.ghlClient);
+    this.usersTools = new UsersTools(this.ghlClient);
+    this.webhooksTools = new WebhooksTools(this.ghlClient);
+    this.mcpAppsManager = new MCPAppsManager(this.ghlClient);
 
     // Setup MCP handlers
     this.setupMCPHandlers();
@@ -117,7 +180,17 @@ class GHLMCPHttpServer {
   private setupExpress(): void {
     // Enable CORS for ChatGPT integration
     this.app.use(cors({
-      origin: ['https://chatgpt.com', 'https://chat.openai.com', 'http://localhost:*'],
+      origin: (origin, callback) => {
+        // Allow requests with no origin (curl, server-to-server)
+        if (!origin) return callback(null, true);
+        // Allow any localhost port + ChatGPT
+        if (/^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+            origin === 'https://chatgpt.com' ||
+            origin === 'https://chat.openai.com') {
+          return callback(null, true);
+        }
+        callback(new Error('CORS not allowed'));
+      },
       methods: ['GET', 'POST', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
       credentials: true
@@ -188,6 +261,26 @@ class GHLMCPHttpServer {
         const surveyToolDefinitions = this.surveyTools.getTools();
         const storeToolDefinitions = this.storeTools.getTools();
         const productsToolDefinitions = this.productsTools.getTools();
+        const affiliatesToolDefs = this.affiliatesTools.getToolDefinitions();
+        const businessesToolDefs = this.businessesTools.getToolDefinitions();
+        const campaignsToolDefs = this.campaignsTools.getToolDefinitions();
+        const companiesToolDefs = this.companiesTools.getToolDefinitions();
+        const coursesToolDefs = this.coursesTools.getToolDefinitions();
+        const formsToolDefs = this.formsTools.getToolDefinitions();
+        const funnelsToolDefs = this.funnelsTools.getToolDefinitions();
+        const invoicesToolDefs = this.invoicesTools.getTools();
+        const linksToolDefs = this.linksTools.getToolDefinitions();
+        const paymentsToolDefs = this.paymentsTools.getTools();
+        const phoneToolDefs = this.phoneTools.getToolDefinitions();
+        const reportingToolDefs = this.reportingTools.getToolDefinitions();
+        const reputationToolDefs = this.reputationTools.getToolDefinitions();
+        const saasToolDefs = this.saasTools.getToolDefinitions();
+        const smartListsToolDefs = this.smartListsTools.getToolDefinitions();
+        const snapshotsToolDefs = this.snapshotsTools.getToolDefinitions();
+        const templatesToolDefs = this.templatesTools.getToolDefinitions();
+        const triggersToolDefs = this.triggersTools.getToolDefinitions();
+        const usersToolDefs = this.usersTools.getToolDefinitions();
+        const webhooksToolDefs = this.webhooksTools.getToolDefinitions();
         
         const allTools = [
           ...contactToolDefinitions,
@@ -206,7 +299,27 @@ class GHLMCPHttpServer {
           ...workflowToolDefinitions,
           ...surveyToolDefinitions,
           ...storeToolDefinitions,
-          ...productsToolDefinitions
+          ...productsToolDefinitions,
+          ...affiliatesToolDefs,
+          ...businessesToolDefs,
+          ...campaignsToolDefs,
+          ...companiesToolDefs,
+          ...coursesToolDefs,
+          ...formsToolDefs,
+          ...funnelsToolDefs,
+          ...invoicesToolDefs,
+          ...linksToolDefs,
+          ...paymentsToolDefs,
+          ...phoneToolDefs,
+          ...reportingToolDefs,
+          ...reputationToolDefs,
+          ...saasToolDefs,
+          ...smartListsToolDefs,
+          ...snapshotsToolDefs,
+          ...templatesToolDefs,
+          ...triggersToolDefs,
+          ...usersToolDefs,
+          ...webhooksToolDefs
         ];
         
         console.log(`[GHL MCP HTTP] Registered ${allTools.length} tools total`);
@@ -268,7 +381,8 @@ class GHLMCPHttpServer {
         } else if (this.isProductsTool(name)) {
           result = await this.productsTools.executeProductsTool(name, args || {});
         } else {
-          throw new Error(`Unknown tool: ${name}`);
+          // Try dynamic routing for newer tool modules (all use handleToolCall)
+          result = await this.tryDynamicToolCall(name, args || {});
         }
         
         console.log(`[GHL MCP HTTP] Tool ${name} executed successfully`);
@@ -340,13 +454,107 @@ class GHLMCPHttpServer {
         const surveyTools = this.surveyTools.getTools();
         const storeTools = this.storeTools.getTools();
         const productsTools = this.productsTools.getTools();
+        const appTools = this.mcpAppsManager.getToolDefinitions();
         
+        const allTools = [
+          ...contactTools, ...conversationTools, ...blogTools, ...opportunityTools,
+          ...calendarTools, ...emailTools, ...locationTools, ...emailISVTools,
+          ...socialMediaTools, ...mediaTools, ...objectTools, ...associationTools,
+          ...customFieldV2Tools, ...workflowTools, ...surveyTools, ...storeTools,
+          ...productsTools, ...appTools,
+          ...this.affiliatesTools.getToolDefinitions(),
+          ...this.businessesTools.getToolDefinitions(),
+          ...this.campaignsTools.getToolDefinitions(),
+          ...this.companiesTools.getToolDefinitions(),
+          ...this.coursesTools.getToolDefinitions(),
+          ...this.formsTools.getToolDefinitions(),
+          ...this.funnelsTools.getToolDefinitions(),
+          ...this.invoicesTools.getTools(),
+          ...this.linksTools.getToolDefinitions(),
+          ...this.paymentsTools.getTools(),
+          ...this.phoneTools.getToolDefinitions(),
+          ...this.reportingTools.getToolDefinitions(),
+          ...this.reputationTools.getToolDefinitions(),
+          ...this.saasTools.getToolDefinitions(),
+          ...this.smartListsTools.getToolDefinitions(),
+          ...this.snapshotsTools.getToolDefinitions(),
+          ...this.templatesTools.getToolDefinitions(),
+          ...this.triggersTools.getToolDefinitions(),
+          ...this.usersTools.getToolDefinitions(),
+          ...this.webhooksTools.getToolDefinitions(),
+        ];
         res.json({
-          tools: [...contactTools, ...conversationTools, ...blogTools, ...opportunityTools, ...calendarTools, ...emailTools, ...locationTools, ...emailISVTools, ...socialMediaTools, ...mediaTools, ...objectTools, ...associationTools, ...customFieldV2Tools, ...workflowTools, ...surveyTools, ...storeTools, ...productsTools],
-          count: contactTools.length + conversationTools.length + blogTools.length + opportunityTools.length + calendarTools.length + emailTools.length + locationTools.length + emailISVTools.length + socialMediaTools.length + mediaTools.length + objectTools.length + associationTools.length + customFieldV2Tools.length + workflowTools.length + surveyTools.length + storeTools.length + productsTools.length
+          tools: allTools,
+          count: allTools.length
         });
       } catch (error) {
         res.status(500).json({ error: 'Failed to list tools' });
+      }
+    });
+
+    // Tool execution endpoint (REST)
+    this.app.post('/tools/call', async (req, res) => {
+      const { name, arguments: args } = req.body;
+      if (!name) {
+        res.status(400).json({ error: 'Missing tool name' });
+        return;
+      }
+      console.log(`[GHL MCP HTTP] REST tool call: ${name}`);
+      try {
+        let result: any;
+        if (this.isContactTool(name)) {
+          result = await this.contactTools.executeTool(name, args || {});
+        } else if (this.isConversationTool(name)) {
+          result = await this.conversationTools.executeTool(name, args || {});
+        } else if (this.isBlogTool(name)) {
+          result = await this.blogTools.executeTool(name, args || {});
+        } else if (this.isOpportunityTool(name)) {
+          result = await this.opportunityTools.executeTool(name, args || {});
+        } else if (this.isCalendarTool(name)) {
+          result = await this.calendarTools.executeTool(name, args || {});
+        } else if (this.isEmailTool(name)) {
+          result = await this.emailTools.executeTool(name, args || {});
+        } else if (this.isLocationTool(name)) {
+          result = await this.locationTools.executeTool(name, args || {});
+        } else if (this.isEmailISVTool(name)) {
+          result = await this.emailISVTools.executeTool(name, args || {});
+        } else if (this.isSocialMediaTool(name)) {
+          result = await this.socialMediaTools.executeTool(name, args || {});
+        } else if (this.isMediaTool(name)) {
+          result = await this.mediaTools.executeTool(name, args || {});
+        } else if (this.isObjectTool(name)) {
+          result = await this.objectTools.executeTool(name, args || {});
+        } else if (this.isAssociationTool(name)) {
+          result = await this.associationTools.executeAssociationTool(name, args || {});
+        } else if (this.isCustomFieldV2Tool(name)) {
+          result = await this.customFieldV2Tools.executeCustomFieldV2Tool(name, args || {});
+        } else if (this.isWorkflowTool(name)) {
+          result = await this.workflowTools.executeWorkflowTool(name, args || {});
+        } else if (this.isSurveyTool(name)) {
+          result = await this.surveyTools.executeSurveyTool(name, args || {});
+        } else if (this.isStoreTool(name)) {
+          result = await this.storeTools.executeStoreTool(name, args || {});
+        } else if (this.isProductsTool(name)) {
+          result = await this.productsTools.executeProductsTool(name, args || {});
+        } else if (this.mcpAppsManager.isAppTool(name)) {
+          result = await this.mcpAppsManager.executeTool(name, args || {});
+        } else {
+          // Try dynamic routing for newer tool modules
+          try {
+            result = await this.tryDynamicToolCall(name, args || {});
+          } catch (e: any) {
+            if (e.message?.includes('Unknown tool')) {
+              res.status(404).json({ error: `Unknown tool: ${name}` });
+              return;
+            }
+            throw e;
+          }
+        }
+        console.log(`[GHL MCP HTTP] REST tool ${name} executed successfully`);
+        res.json({ result });
+      } catch (error: any) {
+        console.error(`[GHL MCP HTTP] REST tool ${name} error:`, error);
+        res.status(500).json({ error: `Tool execution failed: ${error.message || error}` });
       }
     });
 
@@ -408,7 +616,8 @@ class GHLMCPHttpServer {
    * Get tools count summary
    */
   private getToolsCount() {
-    return {
+    // Legacy modules (original 17)
+    const legacyCounts: Record<string, number> = {
       contact: this.contactTools.getToolDefinitions().length,
       conversation: this.conversationTools.getToolDefinitions().length,
       blog: this.blogTools.getToolDefinitions().length,
@@ -426,24 +635,102 @@ class GHLMCPHttpServer {
       surveys: this.surveyTools.getTools().length,
       store: this.storeTools.getTools().length,
       products: this.productsTools.getTools().length,
-      total: this.contactTools.getToolDefinitions().length + 
-             this.conversationTools.getToolDefinitions().length + 
-             this.blogTools.getToolDefinitions().length +
-             this.opportunityTools.getToolDefinitions().length +
-             this.calendarTools.getToolDefinitions().length +
-             this.emailTools.getToolDefinitions().length +
-             this.locationTools.getToolDefinitions().length +
-             this.emailISVTools.getToolDefinitions().length +
-             this.socialMediaTools.getTools().length +
-             this.mediaTools.getToolDefinitions().length +
-             this.objectTools.getToolDefinitions().length +
-             this.associationTools.getTools().length +
-             this.customFieldV2Tools.getTools().length +
-             this.workflowTools.getTools().length +
-             this.surveyTools.getTools().length +
-             this.storeTools.getTools().length +
-             this.productsTools.getTools().length
     };
+
+    // Dynamic modules (21 newer modules added later)
+    const dynamicModules: Array<{ name: string; instance: any; listMethod: string }> = [
+      { name: 'affiliates', instance: this.affiliatesTools, listMethod: 'getToolDefinitions' },
+      { name: 'businesses', instance: this.businessesTools, listMethod: 'getToolDefinitions' },
+      { name: 'campaigns', instance: this.campaignsTools, listMethod: 'getToolDefinitions' },
+      { name: 'companies', instance: this.companiesTools, listMethod: 'getToolDefinitions' },
+      { name: 'courses', instance: this.coursesTools, listMethod: 'getToolDefinitions' },
+      { name: 'forms', instance: this.formsTools, listMethod: 'getToolDefinitions' },
+      { name: 'funnels', instance: this.funnelsTools, listMethod: 'getToolDefinitions' },
+      { name: 'invoices', instance: this.invoicesTools, listMethod: 'getTools' },
+      { name: 'links', instance: this.linksTools, listMethod: 'getToolDefinitions' },
+      { name: 'payments', instance: this.paymentsTools, listMethod: 'getTools' },
+      { name: 'phone', instance: this.phoneTools, listMethod: 'getToolDefinitions' },
+      { name: 'reporting', instance: this.reportingTools, listMethod: 'getToolDefinitions' },
+      { name: 'reputation', instance: this.reputationTools, listMethod: 'getToolDefinitions' },
+      { name: 'saas', instance: this.saasTools, listMethod: 'getToolDefinitions' },
+      { name: 'smartLists', instance: this.smartListsTools, listMethod: 'getToolDefinitions' },
+      { name: 'snapshots', instance: this.snapshotsTools, listMethod: 'getToolDefinitions' },
+      { name: 'templates', instance: this.templatesTools, listMethod: 'getToolDefinitions' },
+      { name: 'triggers', instance: this.triggersTools, listMethod: 'getToolDefinitions' },
+      { name: 'users', instance: this.usersTools, listMethod: 'getToolDefinitions' },
+      { name: 'webhooks', instance: this.webhooksTools, listMethod: 'getToolDefinitions' },
+      { name: 'apps', instance: this.mcpAppsManager, listMethod: 'getToolDefinitions' },
+    ];
+
+    const dynamicCounts: Record<string, number> = {};
+    for (const mod of dynamicModules) {
+      try {
+        dynamicCounts[mod.name] = mod.instance[mod.listMethod]().length;
+      } catch { dynamicCounts[mod.name] = 0; }
+    }
+
+    const legacyTotal = Object.values(legacyCounts).reduce((a, b) => a + b, 0);
+    const dynamicTotal = Object.values(dynamicCounts).reduce((a, b) => a + b, 0);
+
+    return {
+      ...legacyCounts,
+      ...dynamicCounts,
+      total: legacyTotal + dynamicTotal,
+      sections: Object.keys(legacyCounts).length + Object.keys(dynamicCounts).length,
+    };
+  }
+
+  /**
+   * Dynamic tool router for newer modules that use handleToolCall.
+   * Builds a tool-name → handler map from all new modules' tool definitions,
+   * then routes to the correct module's handleToolCall.
+   */
+  private _dynamicToolMap: Map<string, { handleToolCall: (name: string, args: Record<string, unknown>) => Promise<unknown> }> | null = null;
+
+  private getDynamicToolMap() {
+    if (this._dynamicToolMap) return this._dynamicToolMap;
+    
+    const modules: Array<{ instance: any; listMethod: string }> = [
+      { instance: this.affiliatesTools, listMethod: 'getToolDefinitions' },
+      { instance: this.businessesTools, listMethod: 'getToolDefinitions' },
+      { instance: this.campaignsTools, listMethod: 'getToolDefinitions' },
+      { instance: this.companiesTools, listMethod: 'getToolDefinitions' },
+      { instance: this.coursesTools, listMethod: 'getToolDefinitions' },
+      { instance: this.formsTools, listMethod: 'getToolDefinitions' },
+      { instance: this.funnelsTools, listMethod: 'getToolDefinitions' },
+      { instance: this.invoicesTools, listMethod: 'getTools' },
+      { instance: this.linksTools, listMethod: 'getToolDefinitions' },
+      { instance: this.paymentsTools, listMethod: 'getTools' },
+      { instance: this.phoneTools, listMethod: 'getToolDefinitions' },
+      { instance: this.reportingTools, listMethod: 'getToolDefinitions' },
+      { instance: this.reputationTools, listMethod: 'getToolDefinitions' },
+      { instance: this.saasTools, listMethod: 'getToolDefinitions' },
+      { instance: this.smartListsTools, listMethod: 'getToolDefinitions' },
+      { instance: this.snapshotsTools, listMethod: 'getToolDefinitions' },
+      { instance: this.templatesTools, listMethod: 'getToolDefinitions' },
+      { instance: this.triggersTools, listMethod: 'getToolDefinitions' },
+      { instance: this.usersTools, listMethod: 'getToolDefinitions' },
+      { instance: this.webhooksTools, listMethod: 'getToolDefinitions' },
+    ];
+
+    const map = new Map<string, any>();
+    for (const mod of modules) {
+      const tools: any[] = mod.instance[mod.listMethod]();
+      for (const tool of tools) {
+        map.set(tool.name, mod.instance);
+      }
+    }
+    this._dynamicToolMap = map;
+    return map;
+  }
+
+  private async tryDynamicToolCall(toolName: string, args: Record<string, unknown>): Promise<unknown> {
+    const map = this.getDynamicToolMap();
+    const handler = map.get(toolName);
+    if (!handler) {
+      throw new Error(`Unknown tool: ${toolName}`);
+    }
+    return handler.handleToolCall(toolName, args);
   }
 
   /**
