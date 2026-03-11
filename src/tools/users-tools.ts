@@ -245,6 +245,31 @@ export class UsersTools {
             }
           }
         }
+      },
+      {
+        name: 'filter_users_by_email',
+        description: 'Filter/look up users by email address within a location',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            email: {
+              type: 'string',
+              description: 'Email address to search for'
+            },
+            locationId: {
+              type: 'string',
+              description: 'Location ID to filter within (uses default if not provided)'
+            }
+          },
+          required: ['email']
+        },
+        _meta: {
+          labels: {
+            category: "users",
+            access: "read",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -317,6 +342,14 @@ export class UsersTools {
         if (args.limit) params.append('limit', String(args.limit));
         
         return this.ghlClient.makeRequest('GET', `/users/search?${params.toString()}`);
+      }
+
+      case 'filter_users_by_email': {
+        const body: Record<string, unknown> = {
+          email: args.email,
+          locationId
+        };
+        return this.ghlClient.makeRequest('POST', `/users/search/filter-by-email`, body);
       }
 
       default:

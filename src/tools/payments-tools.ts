@@ -993,6 +993,82 @@ export class PaymentsTools {
           },
           required: ['locationId', 'liveMode']
         }
+      },
+      {
+        name: 'get_order_notes',
+        description: 'Get notes for a specific order',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            orderId: {
+              type: 'string',
+              description: 'ID of the order to get notes for'
+            },
+            altId: {
+              type: 'string',
+              description: 'Alt ID (unique identifier like location ID)'
+            },
+            altType: {
+              type: 'string',
+              enum: ['location'],
+              description: 'Alt Type'
+            }
+          },
+          required: ['orderId', 'altId', 'altType']
+        },
+        _meta: {
+          labels: {
+            category: "payments",
+            access: "read",
+            complexity: "simple"
+          }
+        }
+      },
+      {
+        name: 'record_order_payment',
+        description: 'Record a manual payment for an order',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            orderId: {
+              type: 'string',
+              description: 'ID of the order to record payment for'
+            },
+            altId: {
+              type: 'string',
+              description: 'Alt ID (unique identifier like location ID)'
+            },
+            altType: {
+              type: 'string',
+              enum: ['location'],
+              description: 'Alt Type'
+            },
+            amount: {
+              type: 'number',
+              description: 'Payment amount'
+            },
+            currency: {
+              type: 'string',
+              description: 'Currency code (e.g., USD)'
+            },
+            paymentMethod: {
+              type: 'string',
+              description: 'Payment method used'
+            },
+            note: {
+              type: 'string',
+              description: 'Note about the payment'
+            }
+          },
+          required: ['orderId', 'altId', 'altType', 'amount']
+        },
+        _meta: {
+          labels: {
+            category: "payments",
+            access: "write",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -1069,6 +1145,19 @@ export class PaymentsTools {
       case 'disconnect_custom_provider_config':
         const { locationId: disconnectLocationId, ...disconnectData } = args;
         return this.client.disconnectCustomProviderConfig(disconnectLocationId, disconnectData as DeleteCustomProviderConfigDto);
+
+      case 'get_order_notes': {
+        const { orderId: notesOrderId, ...notesQuery } = args;
+        const params = new URLSearchParams();
+        if (notesQuery.altId) params.append('altId', String(notesQuery.altId));
+        if (notesQuery.altType) params.append('altType', String(notesQuery.altType));
+        return this.client.makeRequest('GET', `/payments/orders/${notesOrderId}/notes?${params.toString()}`);
+      }
+
+      case 'record_order_payment': {
+        const { orderId: paymentOrderId, ...paymentData } = args;
+        return this.client.makeRequest('POST', `/payments/orders/${paymentOrderId}/record-payment`, paymentData as Record<string, unknown>);
+      }
 
       default:
         throw new Error(`Unknown tool: ${name}`);

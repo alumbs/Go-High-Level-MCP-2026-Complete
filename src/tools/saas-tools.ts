@@ -197,6 +197,138 @@ export class SaasTools {
           },
           required: ['companyId']
         }
+      },
+      {
+        name: 'get_saas_agency_plans',
+        description: 'Get all SaaS plans available for the agency',
+        _meta: {
+          labels: { category: 'saas', access: 'read', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            }
+          },
+          required: ['companyId']
+        }
+      },
+      {
+        name: 'bulk_disable_saas',
+        description: 'Disable SaaS for multiple locations in bulk',
+        _meta: {
+          labels: { category: 'saas', access: 'write', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            locationIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of location IDs to disable SaaS for'
+            }
+          },
+          required: ['companyId', 'locationIds']
+        }
+      },
+      {
+        name: 'bulk_enable_saas',
+        description: 'Enable SaaS for multiple locations in bulk',
+        _meta: {
+          labels: { category: 'saas', access: 'write', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            locationIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of location IDs to enable SaaS for'
+            },
+            planId: {
+              type: 'string',
+              description: 'SaaS plan ID to assign'
+            }
+          },
+          required: ['companyId', 'locationIds']
+        }
+      },
+      {
+        name: 'get_saas_subscription',
+        description: 'Get the SaaS subscription details for a specific location',
+        _meta: {
+          labels: { category: 'saas', access: 'read', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            locationId: {
+              type: 'string',
+              description: 'Location ID to retrieve subscription for'
+            }
+          },
+          required: ['companyId', 'locationId']
+        }
+      },
+      {
+        name: 'list_saas_locations_by_company',
+        description: 'List all SaaS-enabled locations under a company',
+        _meta: {
+          labels: { category: 'saas', access: 'read', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            limit: {
+              type: 'number',
+              description: 'Maximum records to return'
+            },
+            skip: {
+              type: 'number',
+              description: 'Number of records to skip'
+            }
+          },
+          required: ['companyId']
+        }
+      },
+      {
+        name: 'get_saas_plan',
+        description: 'Get details of a specific SaaS plan by plan ID',
+        _meta: {
+          labels: { category: 'saas', access: 'read', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            planId: {
+              type: 'string',
+              description: 'SaaS plan ID to retrieve'
+            }
+          },
+          required: ['companyId', 'planId']
+        }
       }
     ];
   }
@@ -253,6 +385,40 @@ export class SaasTools {
         if (args.enabled !== undefined) body.enabled = args.enabled;
         
         return this.ghlClient.makeRequest('PUT', `/saas-api/public-api/rebilling`, body);
+      }
+
+      case 'get_saas_agency_plans': {
+        return this.ghlClient.makeRequest('GET', `/saas-api/public-api/plans?companyId=${companyId}`);
+      }
+
+      case 'bulk_disable_saas': {
+        return this.ghlClient.makeRequest('POST', `/saas-api/public-api/locations/bulk-disable`, {
+          companyId,
+          locationIds: args.locationIds
+        });
+      }
+
+      case 'bulk_enable_saas': {
+        const body: Record<string, unknown> = { companyId, locationIds: args.locationIds };
+        if (args.planId) body.planId = args.planId;
+        return this.ghlClient.makeRequest('POST', `/saas-api/public-api/locations/bulk-enable`, body);
+      }
+
+      case 'get_saas_subscription': {
+        const locationId = args.locationId as string;
+        return this.ghlClient.makeRequest('GET', `/saas-api/public-api/locations/${locationId}/subscription?companyId=${companyId}`);
+      }
+
+      case 'list_saas_locations_by_company': {
+        const params = new URLSearchParams({ companyId });
+        if (args.limit) params.append('limit', String(args.limit));
+        if (args.skip) params.append('skip', String(args.skip));
+        return this.ghlClient.makeRequest('GET', `/saas-api/public-api/locations/by-company?${params.toString()}`);
+      }
+
+      case 'get_saas_plan': {
+        const planId = args.planId as string;
+        return this.ghlClient.makeRequest('GET', `/saas-api/public-api/plans/${planId}?companyId=${companyId}`);
       }
 
       default:

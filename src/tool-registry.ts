@@ -51,6 +51,11 @@ import { TriggersTools } from './tools/triggers-tools.js';
 import { UsersTools } from './tools/users-tools.js';
 import { WebhooksTools } from './tools/webhooks-tools.js';
 import { WorkflowBuilderTools } from './tools/workflow-builder-tools.js';
+import { PhoneSystemTools } from './tools/phone-system-tools.js';
+import { VoiceAITools } from './tools/voice-ai-tools.js';
+import { ProposalsTools } from './tools/proposals-tools.js';
+import { CustomMenusTools } from './tools/custom-menus-tools.js';
+import { MarketplaceTools } from './tools/marketplace-tools.js';
 
 // ─── Types ──────────────────────────────────────────────────
 
@@ -185,6 +190,11 @@ export class ToolRegistry {
     const triggersTools = new TriggersTools(ghl);
     const usersTools = new UsersTools(ghl);
     const webhooksTools = new WebhooksTools(ghl);
+    const phoneSystemTools = new PhoneSystemTools(ghl);
+    const voiceAITools = new VoiceAITools(ghl);
+    const proposalsTools = new ProposalsTools(ghl);
+    const customMenusTools = new CustomMenusTools(ghl);
+    const marketplaceTools = new MarketplaceTools(ghl);
 
     // Register legacy modules (executeTool pattern)
     this.addModule('contact', contactTools, 'getToolDefinitions', 'executeTool');
@@ -228,6 +238,11 @@ export class ToolRegistry {
     this.addModule('triggers', triggersTools, 'getToolDefinitions', 'handleToolCall');
     this.addModule('users', usersTools, 'getToolDefinitions', 'handleToolCall');
     this.addModule('webhooks', webhooksTools, 'getToolDefinitions', 'handleToolCall');
+    this.addModule('phoneSystem', phoneSystemTools, 'getToolDefinitions', 'handleToolCall');
+    this.addModule('voiceAI', voiceAITools, 'getToolDefinitions', 'handleToolCall');
+    this.addModule('proposals', proposalsTools, 'getToolDefinitions', 'handleToolCall');
+    this.addModule('customMenus', customMenusTools, 'getToolDefinitions', 'handleToolCall');
+    this.addModule('marketplace', marketplaceTools, 'getToolDefinitions', 'handleToolCall');
 
     // Workflow Builder — internal API with Firebase auth (no GHL API client dependency)
     const workflowBuilderTools = new WorkflowBuilderTools();

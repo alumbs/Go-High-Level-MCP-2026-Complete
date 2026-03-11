@@ -832,6 +832,138 @@ export class LocationTools {
             }
           }
         }
+      },
+
+      // Recurring Tasks Tools
+      {
+        name: 'create_recurring_task',
+        description: 'Create a new recurring task template for a location',
+        _meta: {
+          labels: { category: 'locations', access: 'write', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'The location ID'
+            },
+            title: {
+              type: 'string',
+              description: 'Title of the recurring task'
+            },
+            description: {
+              type: 'string',
+              description: 'Description of the recurring task'
+            },
+            dueDate: {
+              type: 'string',
+              description: 'Due date for the task (ISO 8601)'
+            },
+            assignedTo: {
+              type: 'string',
+              description: 'User ID to assign the task to'
+            },
+            recurrence: {
+              type: 'object',
+              description: 'Recurrence configuration',
+              properties: {
+                frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+                interval: { type: 'number', description: 'Repeat every N frequency units' },
+                endDate: { type: 'string', description: 'When recurrence ends (ISO 8601)' }
+              }
+            }
+          },
+          required: ['locationId', 'title']
+        }
+      },
+      {
+        name: 'get_recurring_task',
+        description: 'Get a specific recurring task by ID',
+        _meta: {
+          labels: { category: 'locations', access: 'read', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'The location ID'
+            },
+            taskId: {
+              type: 'string',
+              description: 'The recurring task ID'
+            }
+          },
+          required: ['locationId', 'taskId']
+        }
+      },
+      {
+        name: 'update_recurring_task',
+        description: 'Update an existing recurring task',
+        _meta: {
+          labels: { category: 'locations', access: 'write', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'The location ID'
+            },
+            taskId: {
+              type: 'string',
+              description: 'The recurring task ID to update'
+            },
+            title: {
+              type: 'string',
+              description: 'Updated title'
+            },
+            description: {
+              type: 'string',
+              description: 'Updated description'
+            },
+            dueDate: {
+              type: 'string',
+              description: 'Updated due date (ISO 8601)'
+            },
+            assignedTo: {
+              type: 'string',
+              description: 'Updated assigned user ID'
+            },
+            recurrence: {
+              type: 'object',
+              description: 'Updated recurrence configuration',
+              properties: {
+                frequency: { type: 'string', enum: ['daily', 'weekly', 'monthly', 'yearly'] },
+                interval: { type: 'number' },
+                endDate: { type: 'string' }
+              }
+            }
+          },
+          required: ['locationId', 'taskId']
+        }
+      },
+      {
+        name: 'delete_recurring_task',
+        description: 'Delete a recurring task by ID',
+        _meta: {
+          labels: { category: 'locations', access: 'delete', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'The location ID'
+            },
+            taskId: {
+              type: 'string',
+              description: 'The recurring task ID to delete'
+            }
+          },
+          required: ['locationId', 'taskId']
+        }
       }
     ];
   }
@@ -902,6 +1034,16 @@ export class LocationTools {
       // Timezones
       case 'get_timezones':
         return this.getTimezones(args as MCPGetTimezonesParams);
+
+      // Recurring Tasks
+      case 'create_recurring_task':
+        return this.ghlClient.makeRequest('POST', `/locations/${args.locationId}/recurring-tasks`, args);
+      case 'get_recurring_task':
+        return this.ghlClient.makeRequest('GET', `/locations/${args.locationId}/recurring-tasks/${args.taskId}`);
+      case 'update_recurring_task':
+        return this.ghlClient.makeRequest('PUT', `/locations/${args.locationId}/recurring-tasks/${args.taskId}`, args);
+      case 'delete_recurring_task':
+        return this.ghlClient.makeRequest('DELETE', `/locations/${args.locationId}/recurring-tasks/${args.taskId}`);
 
       default:
         throw new Error(`Unknown location tool: ${name}`);

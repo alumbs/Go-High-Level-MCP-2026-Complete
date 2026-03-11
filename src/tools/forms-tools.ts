@@ -111,6 +111,51 @@ export class FormsTools {
           },
           required: ['formId']
         }
+      },
+      {
+        name: 'upload_form_custom_files',
+        description: 'Upload custom files for a form field (e.g. file upload fields in form submissions)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'Location ID (uses default if not provided)'
+            },
+            contactId: {
+              type: 'string',
+              description: 'Contact ID associated with the upload'
+            },
+            formId: {
+              type: 'string',
+              description: 'Form ID the file belongs to'
+            },
+            fieldId: {
+              type: 'string',
+              description: 'Field ID within the form for the file upload'
+            },
+            fileUrl: {
+              type: 'string',
+              description: 'Publicly accessible URL of the file to upload'
+            },
+            fileName: {
+              type: 'string',
+              description: 'Name of the file being uploaded'
+            },
+            mimeType: {
+              type: 'string',
+              description: 'MIME type of the file (e.g. "application/pdf", "image/png")'
+            }
+          },
+          required: ['locationId', 'contactId', 'formId', 'fieldId', 'fileUrl']
+        },
+        _meta: {
+          labels: {
+            category: "forms",
+            access: "write",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -146,6 +191,20 @@ export class FormsTools {
       case 'get_form_by_id': {
         const formId = args.formId as string;
         return this.ghlClient.makeRequest('GET', `/forms/${formId}?locationId=${locationId}`);
+      }
+
+      case 'upload_form_custom_files': {
+        const body: Record<string, unknown> = {
+          locationId,
+          contactId: args.contactId,
+          formId: args.formId,
+          fieldId: args.fieldId,
+          fileUrl: args.fileUrl
+        };
+        if (args.fileName) body.fileName = args.fileName;
+        if (args.mimeType) body.mimeType = args.mimeType;
+
+        return this.ghlClient.makeRequest('POST', `/forms/upload-custom-files`, body);
       }
 
       default:

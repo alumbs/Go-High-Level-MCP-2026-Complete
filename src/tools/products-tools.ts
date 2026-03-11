@@ -410,6 +410,31 @@ ${params.includedInStore !== undefined ? `• **Store Status:** ${params.include
           },
           required: []
         }
+      },
+      {
+        name: 'ghl_bulk_edit_products',
+        description: 'Bulk edit multiple products in a single request (e.g. update availability, store inclusion, or other fields for many products at once)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: { type: 'string', description: 'GHL Location ID (optional, uses default if not provided)' },
+            ids: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of product IDs to update'
+            },
+            availableInStore: { type: 'boolean', description: 'Set store availability for all specified products' },
+            includedInStore: { type: 'boolean', description: 'Set store inclusion for all specified products' },
+          },
+          required: ['ids'],
+          _meta: {
+            labels: {
+              category: "products",
+              access: "write",
+              complexity: "simple"
+            }
+          }
+        }
       }
     ];
   }
@@ -436,6 +461,8 @@ ${params.includedInStore !== undefined ? `• **Store Status:** ${params.include
         return this.createProductCollection(params as MCPCreateProductCollectionParams);
       case 'ghl_list_product_collections':
         return this.listProductCollections(params as MCPListProductCollectionsParams);
+      case 'ghl_bulk_edit_products':
+        return this.bulkEditProducts(params);
       default:
         return {
           content: [{
@@ -781,6 +808,34 @@ ${params.name ? `• **Search:** "${params.name}"` : ''}`
         content: [{
           type: 'text', 
           text: `❌ **Error Listing Collections**\n\n${error instanceof Error ? error.message : 'Unknown error occurred'}`
+        }]
+      };
+    }
+  }
+
+  async bulkEditProducts(params: any): Promise<ProductsToolResult> {
+    try {
+      const locationId = params.locationId || this.apiClient.getConfig().locationId;
+      const body: Record<string, unknown> = {
+        locationId,
+        ids: params.ids
+      };
+      if (params.availableInStore !== undefined) body.availableInStore = params.availableInStore;
+      if (params.includedInStore !== undefined) body.includedInStore = params.includedInStore;
+
+      const response = await this.apiClient.makeRequest('POST', `/products/bulk-update/edit`, body);
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Bulk Product Edit Completed!**\n\n📦 **Updated ${params.ids?.length ?? 0} product(s)**\n\n\`\`\`json\n${JSON.stringify(response, null, 2)}\n\`\`\``
+        }]
+      };
+    } catch (error) {
+      return {
+        content: [{
+          type: 'text',
+          text: `❌ **Error Bulk Editing Products**\n\n${error instanceof Error ? error.message : 'Unknown error occurred'}`
         }]
       };
     }

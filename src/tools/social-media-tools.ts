@@ -447,6 +447,65 @@ export class SocialMediaTools {
           },
           required: ['platform', 'accountId']
         }
+      },
+      {
+        name: 'get_social_media_statistics',
+        description: 'Get social media posting statistics for accounts',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            accountIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of social media account IDs to get statistics for'
+            },
+            fromDate: { type: 'string', description: 'Start date (ISO format)' },
+            toDate: { type: 'string', description: 'End date (ISO format)' },
+            postType: {
+              type: 'string',
+              enum: ['post', 'story', 'reel'],
+              description: 'Type of post to get statistics for'
+            }
+          },
+          required: ['fromDate', 'toDate']
+        },
+        _meta: {
+          labels: {
+            category: "social-media",
+            access: "read",
+            complexity: "simple"
+          }
+        }
+      },
+      {
+        name: 'set_social_media_accounts',
+        description: 'Set/configure social media accounts for a location',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'The location ID to set social media accounts for'
+            },
+            accountIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of social media account IDs to associate with the location'
+            },
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            }
+          },
+          required: ['locationId', 'accountIds']
+        },
+        _meta: {
+          labels: {
+            category: "social-media",
+            access: "write",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -482,6 +541,10 @@ export class SocialMediaTools {
           return await this.startSocialOAuth(args);
         case 'get_platform_accounts':
           return await this.getPlatformAccounts(args);
+        case 'get_social_media_statistics':
+          return await this.getSocialMediaStatistics(args);
+        case 'set_social_media_accounts':
+          return await this.setSocialMediaAccounts(args);
         default:
           throw new Error(`Unknown tool: ${name}`);
       }
@@ -694,6 +757,38 @@ export class SocialMediaTools {
       success: true,
       platformAccounts: response.data,
       message: `Retrieved ${params.platform} accounts for OAuth ID ${params.accountId}`
+    };
+  }
+
+  private async getSocialMediaStatistics(params: { accountIds?: string[]; fromDate: string; toDate: string; postType?: string }) {
+    const body: Record<string, unknown> = {
+      fromDate: params.fromDate,
+      toDate: params.toDate
+    };
+    if (params.accountIds) body.accountIds = params.accountIds;
+    if (params.postType) body.postType = params.postType;
+
+    const response = await this.ghlClient.makeRequest('POST', '/social-media-posting/statistics', body as Record<string, unknown>);
+
+    return {
+      success: true,
+      statistics: response.data,
+      message: 'Social media statistics retrieved successfully'
+    };
+  }
+
+  private async setSocialMediaAccounts(params: { locationId: string; accountIds: string[]; companyId?: string }) {
+    const body: Record<string, unknown> = {
+      accountIds: params.accountIds
+    };
+    if (params.companyId) body.companyId = params.companyId;
+
+    const response = await this.ghlClient.makeRequest('POST', `/social-media-posting/${params.locationId}/set-accounts`, body as Record<string, unknown>);
+
+    return {
+      success: true,
+      result: response.data,
+      message: `Social media accounts set for location ${params.locationId}`
     };
   }
 } 

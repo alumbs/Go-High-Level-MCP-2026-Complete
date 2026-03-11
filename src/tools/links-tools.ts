@@ -165,6 +165,38 @@ export class LinksTools {
           },
           required: ['linkId']
         }
+      },
+      {
+        name: 'search_links',
+        description: 'Search trigger links by name or query string within a location',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            locationId: {
+              type: 'string',
+              description: 'Location ID (uses default if not provided)'
+            },
+            query: {
+              type: 'string',
+              description: 'Search term to filter links by name'
+            },
+            skip: {
+              type: 'number',
+              description: 'Number of records to skip for pagination'
+            },
+            limit: {
+              type: 'number',
+              description: 'Maximum number of links to return'
+            }
+          }
+        },
+        _meta: {
+          labels: {
+            category: "links",
+            access: "read",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -214,6 +246,16 @@ export class LinksTools {
       case 'delete_link': {
         const linkId = args.linkId as string;
         return this.ghlClient.makeRequest('DELETE', `/links/${linkId}?locationId=${locationId}`);
+      }
+
+      case 'search_links': {
+        const params = new URLSearchParams();
+        params.append('locationId', locationId);
+        if (args.query) params.append('query', String(args.query));
+        if (args.skip) params.append('skip', String(args.skip));
+        if (args.limit) params.append('limit', String(args.limit));
+
+        return this.ghlClient.makeRequest('GET', `/links/search?${params.toString()}`);
       }
 
       default:

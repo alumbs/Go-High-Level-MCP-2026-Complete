@@ -199,6 +199,40 @@ export class SnapshotsTools {
           },
           required: ['snapshotId', 'companyId', 'locationIds']
         }
+      },
+      {
+        name: 'create_snapshot_share_link',
+        description: 'Generate a shareable link for a snapshot so it can be distributed or imported by other agencies',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            snapshotId: {
+              type: 'string',
+              description: 'The snapshot ID to create a share link for'
+            },
+            companyId: {
+              type: 'string',
+              description: 'Company/Agency ID'
+            },
+            shareType: {
+              type: 'string',
+              enum: ['link', 'permanent_link'],
+              description: 'Type of share link to generate (link = temporary, permanent_link = never expires)'
+            },
+            expiryTime: {
+              type: 'string',
+              description: 'Expiry date/time for the share link (ISO 8601 format, for non-permanent links)'
+            }
+          },
+          required: ['snapshotId', 'companyId']
+        },
+        _meta: {
+          labels: {
+            category: "snapshots",
+            access: "write",
+            complexity: "simple"
+          }
+        }
       }
     ];
   }
@@ -256,6 +290,18 @@ export class SnapshotsTools {
         if (args.override) body.override = args.override;
         
         return this.ghlClient.makeRequest('POST', `/snapshots/${snapshotId}/push`, body);
+      }
+
+      case 'create_snapshot_share_link': {
+        const snapshotId = args.snapshotId as string;
+        const body: Record<string, unknown> = {
+          companyId,
+          snapshotId
+        };
+        if (args.shareType) body.shareType = args.shareType;
+        if (args.expiryTime) body.expiryTime = args.expiryTime;
+
+        return this.ghlClient.makeRequest('POST', `/snapshots/share/link`, body);
       }
 
       default:

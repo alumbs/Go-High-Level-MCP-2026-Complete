@@ -11,6 +11,7 @@ import {
 export interface Tool {
   name: string;
   description: string;
+  _meta?: Record<string, any>;
   inputSchema: {
     type: string;
     properties: Record<string, any>;
@@ -170,6 +171,132 @@ export class MediaTools {
           },
           required: ['id']
         }
+      },
+      {
+        name: 'create_media_folder',
+        description: 'Create a new folder in the media library',
+        _meta: {
+          labels: { category: 'media', access: 'write', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of the folder to create'
+            },
+            altType: {
+              type: 'string',
+              description: 'Context type (location or agency)',
+              enum: ['location', 'agency'],
+              default: 'location'
+            },
+            altId: {
+              type: 'string',
+              description: 'Location or Agency ID (uses default location if not provided)'
+            },
+            parentId: {
+              type: 'string',
+              description: 'Parent folder ID to create the folder inside'
+            }
+          },
+          required: ['name']
+        }
+      },
+      {
+        name: 'bulk_update_media_files',
+        description: 'Move multiple media files to a different folder in bulk',
+        _meta: {
+          labels: { category: 'media', access: 'write', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            fileIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of file IDs to move'
+            },
+            altType: {
+              type: 'string',
+              description: 'Context type (location or agency)',
+              enum: ['location', 'agency'],
+              default: 'location'
+            },
+            altId: {
+              type: 'string',
+              description: 'Location or Agency ID (uses default location if not provided)'
+            },
+            parentId: {
+              type: 'string',
+              description: 'Destination parent folder ID'
+            }
+          },
+          required: ['fileIds']
+        }
+      },
+      {
+        name: 'bulk_delete_media_files',
+        description: 'Delete multiple media files in bulk',
+        _meta: {
+          labels: { category: 'media', access: 'delete', complexity: 'moderate' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            fileIds: {
+              type: 'array',
+              items: { type: 'string' },
+              description: 'Array of file IDs to delete'
+            },
+            altType: {
+              type: 'string',
+              description: 'Context type (location or agency)',
+              enum: ['location', 'agency'],
+              default: 'location'
+            },
+            altId: {
+              type: 'string',
+              description: 'Location or Agency ID (uses default location if not provided)'
+            }
+          },
+          required: ['fileIds']
+        }
+      },
+      {
+        name: 'update_media_file',
+        description: 'Update metadata (name, parent folder) of an existing media file',
+        _meta: {
+          labels: { category: 'media', access: 'write', complexity: 'simple' }
+        },
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'ID of the file to update'
+            },
+            altType: {
+              type: 'string',
+              description: 'Context type (location or agency)',
+              enum: ['location', 'agency'],
+              default: 'location'
+            },
+            altId: {
+              type: 'string',
+              description: 'Location or Agency ID (uses default location if not provided)'
+            },
+            name: {
+              type: 'string',
+              description: 'New name for the file'
+            },
+            parentId: {
+              type: 'string',
+              description: 'New parent folder ID to move the file into'
+            }
+          },
+          required: ['id']
+        }
       }
     ];
   }
@@ -187,6 +314,18 @@ export class MediaTools {
       
       case 'delete_media_file':
         return this.deleteMediaFile(args as MCPDeleteMediaParams);
+      
+      case 'create_media_folder':
+        return this.createMediaFolder(args);
+      
+      case 'bulk_update_media_files':
+        return this.bulkUpdateMediaFiles(args);
+      
+      case 'bulk_delete_media_files':
+        return this.bulkDeleteMediaFiles(args);
+      
+      case 'update_media_file':
+        return this.updateMediaFile(args);
       
       default:
         throw new Error(`Unknown media tool: ${name}`);
@@ -295,6 +434,119 @@ export class MediaTools {
       };
     } catch (error) {
       throw new Error(`Failed to delete media file: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * CREATE MEDIA FOLDER
+   */
+  private async createMediaFolder(params: { name: string; altType?: string; altId?: string; parentId?: string }): Promise<{ success: boolean; folder: any; message: string }> {
+    try {
+      const body: Record<string, unknown> = {
+        name: params.name,
+        altType: params.altType || 'location',
+        altId: params.altId || this.ghlClient.getConfig().locationId
+      };
+      if (params.parentId) body.parentId = params.parentId;
+
+      const response = await this.ghlClient.makeRequest('POST', '/medias/folder', body);
+
+      if (!response.success || !response.data) {
+        const errorMsg = response.error?.message || 'Unknown API error';
+        throw new Error(`API request failed: ${errorMsg}`);
+      }
+
+      return {
+        success: true,
+        folder: response.data,
+        message: `Folder "${params.name}" created successfully`
+      };
+    } catch (error) {
+      throw new Error(`Failed to create media folder: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * BULK UPDATE MEDIA FILES
+   */
+  private async bulkUpdateMediaFiles(params: { fileIds: string[]; altType?: string; altId?: string; parentId?: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      const body: Record<string, unknown> = {
+        fileIds: params.fileIds,
+        altType: params.altType || 'location',
+        altId: params.altId || this.ghlClient.getConfig().locationId
+      };
+      if (params.parentId) body.parentId = params.parentId;
+
+      const response = await this.ghlClient.makeRequest('PUT', '/medias/update-files', body);
+
+      if (!response.success) {
+        const errorMsg = response.error?.message || 'Unknown API error';
+        throw new Error(`API request failed: ${errorMsg}`);
+      }
+
+      return {
+        success: true,
+        message: `${params.fileIds.length} media file(s) updated successfully`
+      };
+    } catch (error) {
+      throw new Error(`Failed to bulk update media files: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * BULK DELETE MEDIA FILES
+   */
+  private async bulkDeleteMediaFiles(params: { fileIds: string[]; altType?: string; altId?: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      const body: Record<string, unknown> = {
+        fileIds: params.fileIds,
+        altType: params.altType || 'location',
+        altId: params.altId || this.ghlClient.getConfig().locationId
+      };
+
+      const response = await this.ghlClient.makeRequest('PUT', '/medias/delete-files', body);
+
+      if (!response.success) {
+        const errorMsg = response.error?.message || 'Unknown API error';
+        throw new Error(`API request failed: ${errorMsg}`);
+      }
+
+      return {
+        success: true,
+        message: `${params.fileIds.length} media file(s) deleted successfully`
+      };
+    } catch (error) {
+      throw new Error(`Failed to bulk delete media files: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /**
+   * UPDATE MEDIA FILE
+   */
+  private async updateMediaFile(params: { id: string; altType?: string; altId?: string; name?: string; parentId?: string }): Promise<{ success: boolean; file: any; message: string }> {
+    try {
+      const body: Record<string, unknown> = {
+        altType: params.altType || 'location',
+        altId: params.altId || this.ghlClient.getConfig().locationId
+      };
+      if (params.name) body.name = params.name;
+      if (params.parentId) body.parentId = params.parentId;
+
+      const response = await this.ghlClient.makeRequest('POST', `/medias/${params.id}`, body);
+
+      if (!response.success || !response.data) {
+        const errorMsg = response.error?.message || 'Unknown API error';
+        throw new Error(`API request failed: ${errorMsg}`);
+      }
+
+      return {
+        success: true,
+        file: response.data,
+        message: `Media file ${params.id} updated successfully`
+      };
+    } catch (error) {
+      throw new Error(`Failed to update media file: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 } 
