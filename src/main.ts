@@ -152,7 +152,7 @@ async function main() {
       callback(new Error('CORS not allowed'));
     },
     methods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'mcp-session-id'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'mcp-session-id', 'x-ghl-access-token', 'x-ghl-location-id'],
     credentials: true,
   }));
 
@@ -171,12 +171,14 @@ async function main() {
   // a helper that wires a new transport to a fresh McpServer clone per req.
 
   // Helper: register all tools on a fresh McpServer
-  function createFreshServer(): McpServer {
+  // Pass a clientOverride to use per-request GHL credentials instead of the
+  // global env-level credentials (needed for multi-tenant deployments).
+  function createFreshServer(clientOverride?: EnhancedGHLClient): McpServer {
     const srv = new McpServer(
       { name: 'ghl-mcp-server', version: '2.0.0' },
       { capabilities: { tools: {} } }
     );
-    const reg = new ToolRegistry(ghlClient);
+    const reg = new ToolRegistry(clientOverride ?? ghlClient);
     reg.registerAll(srv);
     const regNames = new Set(reg.getAllToolNames());
     for (const tool of appTools) {
@@ -219,8 +221,24 @@ async function main() {
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined, // stateless
       });
-      const server = createFreshServer();
-      await server.connect(transport);
+
+      // Per-request GHL client — use credentials from request headers when
+      // provided (multi-tenant: each CRESyncFlow user brings their own creds).
+      // Falls back to the global env-level client if headers are absent.
+      const reqAccessToken = req.headers['x-ghl-access-token'] as string | undefined;
+      const reqLocationId  = req.headers['x-ghl-location-id']  as string | undefined;
+      let perRequestClient: EnhancedGHLClient | undefined;
+      if (reqAccessToken && reqLocationId) {
+        perRequestClient = new EnhancedGHLClient({
+          accessToken: reqAccessToken,
+          baseUrl: process.env.GHL_BASE_URL || 'https://services.leadconnectorhq.com',
+          version: '2021-07-28',
+          locationId: reqLocationId,
+        });
+        log('debug', 'Using per-request GHL credentials', { locationId: reqLocationId });
+      }
+
+      const server = createFreshServer(perRequestClient);
       await transport.handleRequest(req, res, req.body);
       // Clean up after the response finishes
       res.on('close', () => {
