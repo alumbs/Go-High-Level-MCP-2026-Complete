@@ -568,9 +568,9 @@ export class SocialMediaTools {
 
     return {
       success: true,
-      posts: response.data?.posts || [],
-      count: response.data?.count || 0,
-      message: `Found ${response.data?.count || 0} social media posts`
+      posts: response.data?.results?.posts || [],
+      count: response.data?.results?.count || 0,
+      message: `Found ${response.data?.results?.count || 0} social media posts`
     };
   }
 
@@ -590,7 +590,8 @@ export class SocialMediaTools {
 
     return {
       success: true,
-      post: response.data?.post,
+      postId: response.data?.results?._id,
+      post: response.data?.results,
       message: `Social media post created successfully`
     };
   }
@@ -600,7 +601,7 @@ export class SocialMediaTools {
     
     return {
       success: true,
-      post: response.data?.post,
+      post: response.data?.results,
       message: `Retrieved social media post ${params.postId}`
     };
   }
@@ -639,9 +640,9 @@ export class SocialMediaTools {
     
     return {
       success: true,
-      accounts: response.data?.accounts || [],
-      groups: response.data?.groups || [],
-      message: `Retrieved ${response.data?.accounts?.length || 0} social media accounts and ${response.data?.groups?.length || 0} groups`
+      accounts: response.data?.results?.accounts || [],
+      groups: response.data?.results?.groups || [],
+      message: `Retrieved ${response.data?.results?.accounts?.length || 0} social media accounts and ${response.data?.results?.groups?.length || 0} groups`
     };
   }
 

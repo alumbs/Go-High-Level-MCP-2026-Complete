@@ -2689,16 +2689,18 @@ export interface GHLAttachTikTokAccountRequest {
 
 // Response Interfaces
 export interface GHLSearchPostsResponse {
-  posts: GHLSocialPost[];
-  count: number;
+  results: {
+    posts: GHLSocialPost[];
+    count: number;
+  };
 }
 
 export interface GHLGetPostResponse {
-  post: GHLSocialPost;
+  results: GHLSocialPost;
 }
 
 export interface GHLCreatePostResponse {
-  post: GHLSocialPost;
+  results: GHLSocialPost & { _id: string };
 }
 
 export interface GHLBulkDeleteResponse {
@@ -2707,8 +2709,10 @@ export interface GHLBulkDeleteResponse {
 }
 
 export interface GHLGetAccountsResponse {
-  accounts: GHLSocialAccount[];
-  groups: GHLSocialGroup[];
+  results: {
+    accounts: GHLSocialAccount[];
+    groups: GHLSocialGroup[];
+  };
 }
 
 export interface GHLUploadCSVResponse {
