@@ -365,6 +365,9 @@ export class AffiliatesTools {
             limit: { type: 'number', description: 'Max results' },
             offset: { type: 'number', description: 'Pagination offset' }
           }
+        },
+        _meta: {
+          labels: { category: 'affiliates', access: 'read', complexity: 'simple' }
         }
       }
     ];

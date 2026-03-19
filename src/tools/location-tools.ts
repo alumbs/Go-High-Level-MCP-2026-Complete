@@ -831,6 +831,9 @@ export class LocationTools {
               description: 'Optional location ID'
             }
           }
+        },
+        _meta: {
+          labels: { category: 'locations', access: 'read', complexity: 'simple' }
         }
       },
 

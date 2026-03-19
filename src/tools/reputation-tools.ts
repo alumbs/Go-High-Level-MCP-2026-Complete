@@ -305,6 +305,9 @@ export class ReputationTools {
             platforms: { type: 'array', items: { type: 'string' }, description: 'Platforms to show' },
             layout: { type: 'string', enum: ['grid', 'carousel', 'list'], description: 'Widget layout' }
           }
+        },
+        _meta: {
+          labels: { category: 'reputation', access: 'write', complexity: 'simple' }
         }
       }
     ];

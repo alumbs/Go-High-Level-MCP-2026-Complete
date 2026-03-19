@@ -1484,6 +1484,9 @@ These settings control your store's shipping origin and email notification prefe
           properties: {
             locationId: { type: 'string', description: 'GHL Location ID (optional, uses default if not provided)' }
           }
+        },
+        _meta: {
+          labels: { category: 'stores', access: 'read', complexity: 'simple' }
         }
       }
     ];

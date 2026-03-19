@@ -244,6 +244,9 @@ export class UsersTools {
               description: 'Max records to return'
             }
           }
+        },
+        _meta: {
+          labels: { category: 'users', access: 'read', complexity: 'simple' }
         }
       },
       {

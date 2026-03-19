@@ -383,6 +383,24 @@ export class ToolRegistry {
   getAllToolNames(): string[] {
     return this.allToolDefs.map(t => t.name);
   }
+
+  /**
+   * Get tools grouped by module name.
+   * Used by MetaToolRouter to build category-to-actions index.
+   */
+  getToolsByModule(): Map<string, Tool[]> {
+    const result = new Map<string, Tool[]>();
+    for (const mod of this.modules) {
+      const tools: Tool[] = [];
+      for (const tool of this.allToolDefs) {
+        if (this.toolToModule.get(tool.name) === mod) {
+          tools.push(tool);
+        }
+      }
+      result.set(mod.name, tools);
+    }
+    return result;
+  }
 }
 
 // All tool registration is handled via the ToolRegistry class above.
