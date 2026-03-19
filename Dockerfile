@@ -13,8 +13,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the dynamic UI (optional — don't let it block the main server build)
+RUN npm run build:dynamic-ui || echo "Warning: dynamic UI build failed (non-fatal)"
+
+# Build the main server (TypeScript → dist/)
+RUN npx tsc
 
 # Expose the port
 EXPOSE 8000
@@ -23,4 +26,4 @@ EXPOSE 8000
 ENV NODE_ENV=production
 
 # Start the HTTP server
-CMD ["npm", "start"] 
+CMD ["npm", "start"]
