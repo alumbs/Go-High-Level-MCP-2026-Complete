@@ -8,10 +8,10 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
-    "rootDir": "./src",
-    "outDir": "./dist",
-    "types": ["node", "jest"]
+    "rootDir": "./scripts",
+    "outDir": "./dist/scripts",
+    "types": ["node"]
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "tests/**/*", "src/ui/**/*", "src/apps/**/*"]
-} 
+  "include": ["scripts/**/*"],
+  "exclude": ["node_modules"]
+}
