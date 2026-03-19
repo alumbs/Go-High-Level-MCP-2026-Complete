@@ -453,6 +453,9 @@ export class InvoicesTools {
           properties: {
             altId: { type: 'string', description: 'Location ID' }
           }
+        },
+        _meta: {
+          labels: { category: 'invoices', access: 'read', complexity: 'simple' }
         }
       }
     ];
