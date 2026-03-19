@@ -13,6 +13,7 @@ import type { Application } from 'express';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { ToolRegistry } from './tool-registry.js';
 import type { MCPAppsManager } from './apps/index.js';
+import type { MetaToolRouter } from './meta-tool-router.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -45,23 +46,31 @@ function toAnthropicTool(tool: Tool) {
  *   1. After `app.use(express.json())` is applied
  *   2. Before `app.listen()` is called
  *
- * Replaces the original `app.get('/tools', ...)` handler — call this INSTEAD
- * of registering a separate /tools GET handler in main.ts.
+ * When a MetaToolRouter is provided (router mode), GET /tools returns the
+ * meta-tool definitions and POST /execute tries the router first before
+ * falling back to direct registry calls for backward compatibility.
  */
 export function registerExecuteRoutes(
   app: Application,
   registry: ToolRegistry,
   appsManager: MCPAppsManager,
-  appTools: Tool[]
+  appTools: Tool[],
+  router?: MetaToolRouter
 ): void {
   // ── GET /tools — Anthropic-compatible tool catalogue ────────────────────
-  // Returns { tools: AnthropicTool[], count: number }
-  // The bridge caches this for 60 s so it is inexpensive in steady state.
   app.get('/tools', (_req, res) => {
     try {
-      const allDefs = registry.getAllToolDefinitions(appTools);
-      const anthropicTools = allDefs.map(toAnthropicTool);
-      res.json({ tools: anthropicTools, count: anthropicTools.length });
+      if (router) {
+        // Router mode: return meta-tool definitions
+        const metaDefs = router.getAllToolDefinitions();
+        const anthropicTools = metaDefs.map(toAnthropicTool);
+        res.json({ tools: anthropicTools, count: anthropicTools.length, mode: 'router' });
+      } else {
+        // Classic mode: return all 550+ tool definitions
+        const allDefs = registry.getAllToolDefinitions(appTools);
+        const anthropicTools = allDefs.map(toAnthropicTool);
+        res.json({ tools: anthropicTools, count: anthropicTools.length, mode: 'classic' });
+      }
     } catch (err: any) {
       console.error('[execute-route] GET /tools error:', err.message);
       res.status(500).json({ error: 'Failed to list tools' });
@@ -69,8 +78,6 @@ export function registerExecuteRoutes(
   });
 
   // ── POST /execute — execute a named tool ─────────────────────────────────
-  // Body: { name: string, arguments?: Record<string, unknown> }
-  // Returns: { result } on success, { error } on failure (HTTP 4xx/5xx)
   app.post('/execute', async (req, res) => {
     const body = req.body ?? {};
     const toolName: string | undefined = body.name;
@@ -82,21 +89,30 @@ export function registerExecuteRoutes(
     }
 
     try {
-      // 1. Try GHL registry tools first
+      // 1. In router mode, try meta-tool routing first
+      if (router) {
+        const routerResult = await router.callTool(toolName, toolArgs);
+        if (routerResult !== undefined) {
+          res.json({ result: routerResult });
+          return;
+        }
+      }
+
+      // 2. Try GHL registry tools (direct call — works in both modes)
       const registryResult = await registry.callTool(toolName, toolArgs);
       if (registryResult !== undefined) {
         res.json({ result: registryResult });
         return;
       }
 
-      // 2. Try MCP App tools
+      // 3. Try MCP App tools
       if (appsManager.isAppTool(toolName)) {
         const appResult = await appsManager.executeTool(toolName, toolArgs);
         res.json({ result: appResult });
         return;
       }
 
-      // 3. Unknown tool
+      // 4. Unknown tool
       res.status(404).json({ error: `Unknown tool: ${toolName}` });
     } catch (err: any) {
       console.error(`[execute-route] POST /execute tool=${toolName} error:`, err.message);

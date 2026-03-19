@@ -20,6 +20,7 @@ import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 
 import { EnhancedGHLClient } from './enhanced-ghl-client.js';
 import { ToolRegistry } from './tool-registry.js';
+import { MetaToolRouter } from './meta-tool-router.js';
 import { MCPAppsManager } from './apps/index.js';
 import { GHLConfig } from './types/ghl-types.js';
 import { registerExecuteRoutes } from './execute-route.js';
@@ -87,56 +88,103 @@ async function main() {
   );
 
   // ── 3. Register All Tools ────────────────────────────────
+  const routerMode = (process.env.MCP_ROUTER_MODE ?? 'true') !== 'false';
   const registry = new ToolRegistry(ghlClient);
-  const toolCount = registry.registerAll(mcpServer);
-  log('info', `Registered ${toolCount} GHL tools`);
-
-  // Register MCP Apps tools (skip duplicates already registered by GHL tools)
   const appsManager = new MCPAppsManager(ghlClient);
   const appTools = appsManager.getToolDefinitions();
-  const registeredToolNames = new Set(registry.getAllToolNames());
-  let appToolCount = 0;
-  for (const tool of appTools) {
-    // Skip if already registered by GHL tool modules (e.g. update_opportunity)
-    if (registeredToolNames.has(tool.name)) {
-      log('info', `Skipping app tool ${tool.name} (already registered by GHL module)`);
-      continue;
-    }
-    const meta = (tool as any)._meta;
-    mcpServer.registerTool(
-      tool.name,
-      {
-        title: tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-        description: tool.description || '',
-        annotations: {
-          readOnlyHint: tool.name.startsWith('view_'),
-          destructiveHint: false,
-          idempotentHint: tool.name.startsWith('view_'),
-          openWorldHint: true,
-        },
-        _meta: meta,
-      },
-      async (args: any) => {
-        try {
-          const result = await appsManager.executeTool(tool.name, args || {});
-          return {
-            content: result.content || [{ type: 'text' as const, text: JSON.stringify(result) }],
-            structuredContent: result.structuredContent,
-          };
-        } catch (err: any) {
-          return {
-            content: [{ type: 'text' as const, text: `Error: ${err.message}` }],
-            isError: true,
-          };
-        }
-      }
-    );
-    appToolCount++;
-  }
-  log('info', `Registered ${appToolCount} MCP App tools`);
+  let router: MetaToolRouter | undefined;
+  let totalTools: number;
 
-  const totalTools = toolCount + appToolCount;
-  log('info', `Total tools registered: ${totalTools}`);
+  if (routerMode) {
+    // Router mode: register ~16 category meta-tools instead of 550+
+    router = new MetaToolRouter(registry, appTools, appsManager);
+    const metaToolCount = router.registerAll(mcpServer);
+    log('info', `Router mode: registered ${metaToolCount} meta-tools (wrapping ${registry.getToolCount()} GHL tools)`);
+
+    // Register app view tools alongside meta-tools (small count, different purpose)
+    const registeredToolNames = new Set(registry.getAllToolNames());
+    let appToolCount = 0;
+    for (const tool of appTools) {
+      if (registeredToolNames.has(tool.name)) continue;
+      const meta = (tool as any)._meta;
+      mcpServer.registerTool(
+        tool.name,
+        {
+          title: tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          description: tool.description || '',
+          annotations: {
+            readOnlyHint: tool.name.startsWith('view_'),
+            destructiveHint: false,
+            idempotentHint: tool.name.startsWith('view_'),
+            openWorldHint: true,
+          },
+          _meta: meta,
+        },
+        async (args: any) => {
+          try {
+            const result = await appsManager.executeTool(tool.name, args || {});
+            return {
+              content: result.content || [{ type: 'text' as const, text: JSON.stringify(result) }],
+              structuredContent: result.structuredContent,
+            };
+          } catch (err: any) {
+            return {
+              content: [{ type: 'text' as const, text: `Error: ${err.message}` }],
+              isError: true,
+            };
+          }
+        }
+      );
+      appToolCount++;
+    }
+    totalTools = metaToolCount + appToolCount;
+    log('info', `Total MCP tools exposed: ${totalTools} (${metaToolCount} meta + ${appToolCount} app views)`);
+  } else {
+    // Classic mode: register all 550+ tools individually
+    const toolCount = registry.registerAll(mcpServer);
+    log('info', `Classic mode: registered ${toolCount} GHL tools`);
+
+    const registeredToolNames = new Set(registry.getAllToolNames());
+    let appToolCount = 0;
+    for (const tool of appTools) {
+      if (registeredToolNames.has(tool.name)) {
+        log('info', `Skipping app tool ${tool.name} (already registered by GHL module)`);
+        continue;
+      }
+      const meta = (tool as any)._meta;
+      mcpServer.registerTool(
+        tool.name,
+        {
+          title: tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+          description: tool.description || '',
+          annotations: {
+            readOnlyHint: tool.name.startsWith('view_'),
+            destructiveHint: false,
+            idempotentHint: tool.name.startsWith('view_'),
+            openWorldHint: true,
+          },
+          _meta: meta,
+        },
+        async (args: any) => {
+          try {
+            const result = await appsManager.executeTool(tool.name, args || {});
+            return {
+              content: result.content || [{ type: 'text' as const, text: JSON.stringify(result) }],
+              structuredContent: result.structuredContent,
+            };
+          } catch (err: any) {
+            return {
+              content: [{ type: 'text' as const, text: `Error: ${err.message}` }],
+              isError: true,
+            };
+          }
+        }
+      );
+      appToolCount++;
+    }
+    totalTools = toolCount + appToolCount;
+    log('info', `Total tools registered: ${totalTools}`);
+  }
 
   // ── 4. Express App ───────────────────────────────────────
   const app = express();
@@ -179,7 +227,15 @@ async function main() {
       { capabilities: { tools: {} } }
     );
     const reg = new ToolRegistry(clientOverride ?? ghlClient);
-    reg.registerAll(srv);
+
+    if (routerMode) {
+      const freshRouter = new MetaToolRouter(reg, appTools, appsManager);
+      freshRouter.registerAll(srv);
+    } else {
+      reg.registerAll(srv);
+    }
+
+    // Register app view tools in both modes
     const regNames = new Set(reg.getAllToolNames());
     for (const tool of appTools) {
       if (regNames.has(tool.name)) continue;
@@ -259,52 +315,7 @@ async function main() {
     log('info', 'SSE connection', { sessionId: String(sessionId) });
 
     try {
-      // Create a fresh McpServer + SSE transport per connection
-      // because SSE transport is stateful (one connection = one transport)
-      const sseServer = new McpServer(
-        { name: 'ghl-mcp-server', version: '2.0.0' },
-        { capabilities: { tools: {} } }
-      );
-
-      // Re-register all tools for this SSE session
-      const sseRegistry = new ToolRegistry(ghlClient);
-      sseRegistry.registerAll(sseServer);
-
-      // Register app tools (skip duplicates)
-      const sseRegisteredNames = new Set(sseRegistry.getAllToolNames());
-      for (const tool of appTools) {
-        if (sseRegisteredNames.has(tool.name)) continue;
-        const meta = (tool as any)._meta;
-        sseServer.registerTool(
-          tool.name,
-          {
-            title: tool.name.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
-            description: tool.description || '',
-            annotations: {
-              readOnlyHint: tool.name.startsWith('view_'),
-              destructiveHint: false,
-              idempotentHint: tool.name.startsWith('view_'),
-              openWorldHint: true,
-            },
-            _meta: meta,
-          },
-          async (args: any) => {
-            try {
-              const result = await appsManager.executeTool(tool.name, args || {});
-              return {
-                content: result.content || [{ type: 'text' as const, text: JSON.stringify(result) }],
-                structuredContent: result.structuredContent,
-              };
-            } catch (err: any) {
-              return {
-                content: [{ type: 'text' as const, text: `Error: ${err.message}` }],
-                isError: true,
-              };
-            }
-          }
-        );
-      }
-
+      const sseServer = createFreshServer();
       const transport = new SSEServerTransport('/sse', res);
       await sseServer.connect(transport);
 
@@ -334,6 +345,7 @@ async function main() {
       name: 'GoHighLevel MCP Server',
       version: '2.0.0',
       status: 'running',
+      mode: routerMode ? 'router' : 'classic',
       uptime: Math.floor((Date.now() - startTime) / 1000),
       endpoints: {
         health: '/health',
@@ -342,7 +354,14 @@ async function main() {
         mcp: '/mcp (Streamable HTTP)',
         sse: '/sse (Legacy SSE)',
       },
-      tools: registry.getToolCounts(appToolCount),
+      tools: routerMode
+        ? {
+            mode: 'router',
+            mcpToolsExposed: totalTools,
+            underlyingGHLTools: registry.getToolCount(),
+            categories: router!.getCategoryCounts(),
+          }
+        : registry.getToolCounts(appTools.filter(t => !new Set(registry.getAllToolNames()).has(t.name)).length),
       cache: cacheStats,
     });
   });
@@ -375,7 +394,7 @@ async function main() {
 
   // Bridge routes: GET /tools (Anthropic format) + POST /execute
   // These are consumed by CRESyncFlow-v2's mcp-tools-bridge.ts.
-  registerExecuteRoutes(app, registry, appsManager, appTools);
+  registerExecuteRoutes(app, registry, appsManager, appTools, router);
 
   app.post('/tools/call', async (req, res) => {
     const { name, arguments: args } = req.body;
@@ -387,6 +406,16 @@ async function main() {
     log('info', `REST tool call: ${name}`);
 
     try {
+      // In router mode, try meta-tool routing first
+      if (router) {
+        const routerResult = await router.callTool(name, args || {});
+        if (routerResult !== undefined) {
+          res.json({ result: routerResult });
+          return;
+        }
+      }
+
+      // Direct tool call (works in both modes, backward compat)
       const result = await registry.callTool(name, args || {});
       if (result === undefined) {
         // Try MCP Apps
@@ -512,7 +541,12 @@ async function main() {
     console.log(`🌐 Server: http://0.0.0.0:${port}`);
     console.log(`📡 Streamable HTTP: http://0.0.0.0:${port}/mcp`);
     console.log(`🔗 Legacy SSE: http://0.0.0.0:${port}/sse`);
-    console.log(`🛠️  Tools: ${totalTools}`);
+    console.log(`🛠️  Tools: ${totalTools} MCP tools exposed`);
+    if (routerMode) {
+      console.log(`🔀 Mode: Router (${router!.getToolCount()} meta-tools wrapping ${registry.getToolCount()} GHL tools)`);
+    } else {
+      console.log(`📋 Mode: Classic (all ${totalTools} tools registered individually)`);
+    }
     console.log(`📦 SDK: @modelcontextprotocol/sdk 1.27.1`);
     console.log('═══════════════════════════════════════════');
   });
