@@ -22,9 +22,16 @@ COPY . .
 # Build the dynamic UI (optional — don't let it block the main server build)
 RUN npm run build:dynamic-ui || echo "Warning: dynamic UI build failed (non-fatal)"
 
+# Debug: verify typescript is installed
+RUN echo "=== Checking typescript ===" && npx tsc --version && echo "=== node_modules/.bin ===" && ls -la node_modules/.bin/tsc
+
 # Build the main server (TypeScript → dist/)
-# Use set -e so a tsc failure stops the build instead of silently continuing
-RUN set -e && npx tsc && ls -la dist/main.js
+RUN npx tsc 2>&1; TSC_EXIT=$?; \
+    echo "=== tsc exit code: $TSC_EXIT ==="; \
+    echo "=== dist/ contents ==="; \
+    ls -la dist/ 2>/dev/null || echo "dist/ does not exist"; \
+    if [ $TSC_EXIT -ne 0 ]; then exit $TSC_EXIT; fi; \
+    ls dist/main.js
 
 # Switch to production for runtime
 ENV NODE_ENV=production
