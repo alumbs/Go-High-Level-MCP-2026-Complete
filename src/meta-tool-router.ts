@@ -156,11 +156,17 @@ export class MetaToolRouter {
       const description = this.makeDescription(category);
       const tools = this.categoryActions.get(category) || [];
 
+      const actionNames = tools.map(t => t.name);
+
       server.registerTool(
         category,
         {
           title: category.replace(/^ghl_/, '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
           description,
+          inputSchema: {
+            action: z.enum(actionNames as [string, ...string[]]).describe('The action to perform'),
+            params: z.record(z.string(), z.any()).optional().describe('Parameters for the action. Use ghl_discover({ category: "' + category + '" }) to see the full schema for each action.'),
+          },
           annotations: {
             readOnlyHint: false,
             destructiveHint: false,
@@ -176,11 +182,16 @@ export class MetaToolRouter {
     }
 
     // Register ghl_discover
+    const allCategories = Object.keys(CATEGORY_MAP);
     server.registerTool(
       'ghl_discover',
       {
         title: 'GHL Discover',
         description: 'Discover available GHL tool categories, actions, and parameter schemas. Call with no args for an overview, or with { "category": "ghl_contacts" } for full details.',
+        inputSchema: {
+          category: z.enum(allCategories as [string, ...string[]]).optional().describe('Category to get detailed action schemas for'),
+          action: z.string().optional().describe('Specific action name to get its full parameter schema'),
+        },
         annotations: {
           readOnlyHint: true,
           destructiveHint: false,
